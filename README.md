@@ -4,7 +4,7 @@ Internal web app for **Sulaiman Al Rajhi University — Executive Directorate of
 
 Replaces the previous PowerPoint-based weekly report with a structured web form, a live dashboard, and a print-ready report for the CIO.
 
-**Current version: v1.3**
+**Current version: v2.0**
 
 ---
 
@@ -25,20 +25,25 @@ Do not make this repository public without first adding authentication to the n8
 | Tab | Purpose |
 |---|---|
 | **Submit Report** | Each sector manager submits their weekly update: status, activities, issues, support needed, next week's tasks, and attachments. |
-| **Dashboard** | Live status across all sectors for a chosen week, Coffee with IT attendance KPIs, and an 8-week RAG trend table. |
+| **Dashboard** | An 8-week RAG trend table at the top, then live status across all sectors for a chosen week, plus Coffee with IT attendance KPIs. |
 | **Compiled Report (for CIO)** | All sectors combined into one branded, printable report. Print → Save as PDF. |
 
 ### Sectors
 
 - **NOC** — Network Operations Center
 - **SOC** — Security Operations Center
-- **CCCU** — Contact Center / Customer Unit
+- **DSSC** — Digital Support and Service Center
 - **AAU** — Applications & Automation Unit
 - **ICTD** — includes the Coffee with IT attendance counts (Students / Staff / Admin)
+- **Event Support** — includes per-event entries (name, date, time, location, attendees, supported by, feedback)
 
 ### Submission behaviour
 
+The week is chosen from a dropdown of Sundays only (labelled with ISO week numbers), so every submission lands on a consistent week boundary.
+
 Reports are keyed on **week + sector**. Submitting again for the same week and sector **updates** the existing entry rather than creating a duplicate. Use **Load My Existing Entry** to pull back and edit a previous submission.
+
+After a successful save the form clears itself, so the next person can enter their sector's update on a blank form. The week and sector stay selected.
 
 ---
 
