@@ -2,6 +2,13 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v1.3
+
+- Redesigned the top banner: official **ICTD circular logo** on the left and the **Arabic ICTD logo** (الإدارة التنفيذية للإتصالات وتقنية المعلومات) on the right, both on white rounded chips for contrast against the purple header.
+- Added a subtle diagonal accent shape to the banner, echoing the ICTD brand design.
+- Logos are embedded as base64 so the file stays fully self-contained with no external image dependencies.
+- Banner reflows on mobile: logos shrink and the date/Arabic logo move to their own row.
+
 ## v1.2
 
 - Added **Coffee with IT** attendance counts (Students / Staff / Admin), shown only when the **ICTD** sector is selected.
