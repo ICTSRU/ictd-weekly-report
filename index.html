@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICTD Weekly Status Report — v1.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+  :root{
+    --purple:#501e8c; --purple-dark:#3a1464; --purple-light:#f0ebf8;
+    --blue:#0a6eaa; --blue-light:#e6f3fa;
+    --bg:#f5f2fa; --border:rgba(80,30,140,0.14);
+    --ink:#241436; --muted:#77678d; --radius:12px; --radius-sm:8px;
+    --noc:#0d5fad; --soc:#c0272d; --cccu:#1f8a3b; --aau:#e0a010; --ops:#7a3fc0;
+    --green:#1f8a3b; --amber:#c98a00; --red:#c0272d;
+    --shadow-sm:0 1px 3px rgba(58,20,100,0.07), 0 1px 2px rgba(58,20,100,0.05);
+    --shadow-md:0 6px 18px rgba(58,20,100,0.10), 0 2px 6px rgba(58,20,100,0.06);
+    --shadow-lg:0 14px 36px rgba(58,20,100,0.16);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Cairo',Tahoma,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    line-height:1.6; font-size:14.5px;
+  }
+  svg.lucide{width:16px; height:16px; stroke-width:2.2; vertical-align:-3px; flex-shrink:0;}
+
+  .topbar{
+    background:linear-gradient(120deg, var(--purple-dark) 0%, #2c0f4d 100%);
+    color:#fff; padding:18px 28px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    box-shadow:0 2px 12px rgba(0,0,0,.14);
+    position:relative; z-index:2; border-bottom:3px solid var(--ops);
+  }
+  .topbar .brand{display:flex; align-items:center; gap:15px;}
+  .topbar .brand .logo{
+    width:46px; height:46px; border-radius:13px; background:#fff;
+    display:flex; align-items:center; justify-content:center; color:var(--purple-dark);
+    font-weight:900; font-size:12.5px; letter-spacing:.02em; box-shadow:var(--shadow-md);
+  }
+  .topbar h1{font-size:19px; margin:0; font-weight:800; letter-spacing:.01em;}
+  .topbar .sub{font-size:12px; opacity:.85; margin:3px 0 0; font-weight:500;}
+  #todayLabel{font-size:12.5px; font-weight:700; background:rgba(255,255,255,.12); padding:7px 16px; border-radius:20px; display:flex; align-items:center; gap:6px;}
+  .version-badge{
+    font-size:11px; font-weight:800; background:rgba(255,255,255,.16); color:#fff;
+    padding:3px 10px; border-radius:12px; letter-spacing:.04em; margin-left:10px;
+    display:inline-block; vertical-align:middle;
+  }
+  .footer-version{
+    text-align:center; color:var(--muted); font-size:11.5px; font-weight:600;
+    padding:18px 0 0; letter-spacing:.02em;
+  }
+
+  .navbar{
+    background:var(--purple); display:flex; gap:2px; padding:0 24px; flex-wrap:wrap;
+    box-shadow:inset 0 -1px 0 rgba(255,255,255,.08);
+  }
+  .navbar button{
+    background:transparent; border:none; color:#fff; padding:14px 20px; font-size:14px;
+    font-family:inherit; cursor:pointer; opacity:.72; border-bottom:3px solid transparent; font-weight:700;
+    display:flex; align-items:center; gap:8px; transition:opacity .15s, border-color .15s, background .15s;
+    border-radius:6px 6px 0 0;
+  }
+  .navbar button:hover{opacity:.92; background:rgba(255,255,255,.07);}
+  .navbar button.active{opacity:1; border-bottom:3px solid #fff;}
+
+  .container{max-width:1120px; margin:0 auto; padding:28px 20px 70px;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .card{
+    background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+    padding:26px 26px 28px; margin-bottom:20px; box-shadow:var(--shadow-sm);
+  }
+  .card h2{
+    margin:0 0 6px; font-size:19px; color:#000; font-weight:900;
+    display:flex; align-items:center; gap:11px;
+  }
+  .card h2 .icon-badge{
+    width:34px; height:34px; border-radius:10px; background:var(--purple-light);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .card h2 .icon-badge svg{color:var(--purple); width:18px; height:18px;}
+  .card .hint{color:var(--muted); font-size:13px; margin:0 0 20px; line-height:1.6;}
+
+  label{display:block; font-size:13px; font-weight:800; color:#000; margin-bottom:7px; margin-top:20px; letter-spacing:.01em;}
+  label:first-of-type{margin-top:0;}
+  select, input[type=text], input[type=date], textarea{
+    width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+    font-family:inherit; font-size:14px; color:var(--ink); background:#fbfaff;
+    transition:border-color .15s, box-shadow .15s, background .15s;
+  }
+  select:hover, input:hover, textarea:hover{border-color:#c9b8e6;}
+  textarea{min-height:70px; resize:vertical;}
+  select:focus, input:focus, textarea:focus{
+    outline:none; border-color:var(--purple); background:#fff;
+    box-shadow:0 0 0 3.5px rgba(80,30,140,0.12);
+  }
+
+  .list-field{display:flex; flex-direction:column; gap:7px;}
+  .list-row{display:flex; align-items:center; gap:8px;}
+  .list-row .num{
+    flex:0 0 24px; text-align:center; font-size:12px; font-weight:800; color:#fff;
+    background:var(--purple); border-radius:50%; width:22px; height:22px; line-height:22px;
+  }
+  .list-row input[type=text]{flex:1; padding:9px 12px; font-size:13.3px;}
+  .list-row .btn-remove{
+    flex:0 0 auto; background:transparent; border:none; color:var(--muted); cursor:pointer;
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    transition:background .15s, color .15s;
+  }
+  .list-row .btn-remove:hover{background:#fdecec; color:var(--red);}
+  .btn-add{
+    margin-top:8px; align-self:flex-start; background:var(--purple-light); color:var(--purple); border:1.5px dashed #c9b0e8;
+    border-radius:var(--radius-sm); padding:8px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit;
+    display:flex; align-items:center; gap:6px; transition:all .15s;
+  }
+  .btn-add:hover{background:var(--purple); color:#fff; border-color:var(--purple); border-style:solid; box-shadow:var(--shadow-sm);}
+
+  /* Attachments */
+  .attach-row{
+    border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px;
+    margin-bottom:10px; background:#fbfaff; display:flex; flex-direction:column; gap:9px;
+  }
+  .attach-row .top{display:flex; align-items:center; gap:10px;}
+  .attach-row .idx{
+    flex:0 0 auto; width:24px; height:24px; line-height:24px; text-align:center;
+    background:var(--purple); color:#fff; border-radius:50%; font-size:12px; font-weight:800;
+  }
+  .attach-row input[type=file]{
+    flex:1; font-size:12.5px; font-family:inherit; padding:7px 10px;
+    border:1.5px solid var(--border); border-radius:var(--radius-sm); background:#fff;
+  }
+  .attach-row input[type=text]{font-size:13.3px;}
+  .attach-row .btn-remove{
+    flex:0 0 auto; background:transparent; border:none; color:var(--muted); cursor:pointer;
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  }
+  .attach-row .btn-remove:hover{background:#fdecec; color:var(--red);}
+  .attach-row .state{font-size:11.5px; font-weight:700; display:flex; align-items:center; gap:6px;}
+  .attach-row .state.pending{color:var(--muted);}
+  .attach-row .state.uploading{color:var(--blue);}
+  .attach-row .state.done{color:var(--green);}
+  .attach-row .state.error{color:var(--red);}
+  .attach-row .state a{color:var(--blue); font-weight:700;}
+
+  /* Coffee with IT inputs */
+  .coffee-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;}
+  .coffee-field{
+    border:1.5px solid var(--border); border-radius:var(--radius-sm);
+    padding:12px 14px; background:#fbfaff; display:flex; flex-direction:column; gap:8px;
+  }
+  .coffee-field span{
+    font-size:12.5px; font-weight:800; color:#000; display:flex; align-items:center; gap:7px;
+  }
+  .coffee-field span svg{color:var(--purple);}
+  .coffee-field input{width:100%; padding:9px 12px; font-size:15px; font-weight:800; text-align:center;}
+
+  /* Dashboard Coffee KPI strip */
+  .coffee-strip{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:22px;
+  }
+  .coffee-kpi{
+    background:linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+    color:#fff; border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow-md);
+    display:flex; flex-direction:column; gap:4px; position:relative; overflow:hidden;
+  }
+  .coffee-kpi.total{background:linear-gradient(135deg, var(--ops) 0%, var(--purple) 100%);}
+  .coffee-kpi .k-label{
+    font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em;
+    opacity:.9; display:flex; align-items:center; gap:7px;
+  }
+  .coffee-kpi .k-value{font-size:30px; font-weight:900; line-height:1.15;}
+  .coffee-kpi::after{
+    content:''; position:absolute; top:-30px; right:-20px; width:110px; height:110px;
+    border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.10), transparent 70%);
+  }
+  .coffee-strip-title{
+    font-size:13px; font-weight:900; color:#000; margin:0 0 12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .coffee-strip-title svg{color:var(--purple);}
+
+  .rag-choice{display:flex; gap:10px; margin-top:8px;}
+  .rag-choice label{
+    flex:1; margin:0; text-align:center; padding:13px 8px; border:1.5px solid var(--border);
+    border-radius:var(--radius-sm); cursor:pointer; font-size:13.5px; font-weight:700; color:var(--muted);
+    transition:all .15s; background:#fbfaff;
+  }
+  .rag-choice label:hover{border-color:#c9b8e6; transform:translateY(-1px);}
+  .rag-choice input{display:none;}
+  .rag-choice label.sel-green{border-color:var(--green); color:var(--green); background:#eafaf0; box-shadow:0 2px 8px rgba(31,138,59,.15);}
+  .rag-choice label.sel-amber{border-color:var(--amber); color:#8a6400; background:#fff8e6; box-shadow:0 2px 8px rgba(201,138,0,.15);}
+  .rag-choice label.sel-red{border-color:var(--red); color:var(--red); background:#fdecec; box-shadow:0 2px 8px rgba(192,39,45,.15);}
+
+  .btn{
+    background:var(--purple); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:12px 24px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;
+    display:inline-flex; align-items:center; gap:8px; transition:all .15s; box-shadow:var(--shadow-sm);
+  }
+  .btn:hover{background:var(--purple-dark); box-shadow:var(--shadow-md); transform:translateY(-1px);}
+  .btn:active{transform:translateY(0);}
+  .btn.secondary{background:#fff; color:var(--purple); border:1.5px solid var(--purple); box-shadow:none;}
+  .btn.secondary:hover{background:var(--purple-light); box-shadow:var(--shadow-sm);}
+  .btn-row{display:flex; gap:12px; margin-top:24px; flex-wrap:wrap;}
+
+  .toast{
+    position:fixed; bottom:26px; right:26px; background:var(--purple-dark); color:#fff;
+    padding:13px 20px; border-radius:var(--radius-sm); font-size:13px; font-weight:600;
+    box-shadow:var(--shadow-lg); display:none; z-index:50; display:flex; align-items:center; gap:8px;
+  }
+
+  /* Dashboard */
+  .week-select-row{display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;}
+  .week-select-row select{width:auto; min-width:210px; font-weight:600;}
+  .status-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-bottom:22px;}
+  .sector-card{border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); background:#fff; box-shadow:var(--shadow-sm); transition:box-shadow .2s, transform .2s;}
+  .sector-card:hover{box-shadow:var(--shadow-md); transform:translateY(-2px);}
+  .sector-card .head{padding:13px 16px; color:#fff; font-weight:800; font-size:14.5px; display:flex; align-items:center; gap:8px; letter-spacing:.02em;}
+  .sector-card .body{padding:14px 16px 16px;}
+  .sector-card .rag-pill{
+    display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800; margin-bottom:10px;
+  }
+  .pill-green{background:#eafaf0; color:var(--green);}
+  .pill-amber{background:#fff8e6; color:#8a6400;}
+  .pill-red{background:#fdecec; color:var(--red);}
+  .pill-none{background:#f0f0f0; color:var(--muted);}
+  .sector-card .body div{line-height:1.6; font-size:13px; margin-bottom:8px; color:#1a1a1a;}
+  .sector-card .body div b{color:#000; font-weight:900;}
+  .sector-card .meta{font-size:12px; color:var(--muted); margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);}
+  .sector-card .missing{padding:26px 16px; text-align:center; color:var(--muted); font-size:12.5px;}
+
+  .trend-wrap{overflow-x:auto; border-radius:var(--radius-sm);}
+  table.trend{border-collapse:collapse; width:100%; font-size:12.5px;}
+  table.trend th, table.trend td{border:1px solid var(--border); padding:10px 12px; text-align:center;}
+  table.trend th{background:var(--purple-light); color:#000; font-weight:900; font-size:12px; text-transform:uppercase; letter-spacing:.03em;}
+  table.trend td.week-label{text-align:left; font-weight:800; color:#000; white-space:nowrap;}
+  table.trend tbody tr:hover{background:#faf8ff;}
+  .dot{display:inline-block; width:15px; height:15px; border-radius:50%; box-shadow:0 0 0 3px rgba(0,0,0,.03);}
+  .dot-green{background:var(--green);} .dot-amber{background:var(--amber);} .dot-red{background:var(--red);} .dot-none{background:#e2dfe8;}
+
+  /* Compiled report / print */
+  .report-cover{
+    background:linear-gradient(135deg, var(--purple-dark), var(--purple) 120%);
+    color:#fff; padding:38px 32px; border-radius:var(--radius); margin-bottom:22px; box-shadow:var(--shadow-md);
+    position:relative; overflow:hidden;
+  }
+  .report-cover::after{
+    content:''; position:absolute; top:-40%; right:-10%; width:280px; height:280px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,255,255,.08), transparent 70%);
+  }
+  .report-cover h1{margin:0 0 6px; font-size:26px; font-weight:800; letter-spacing:.01em;}
+  .report-cover .chips{display:flex; gap:8px; margin-top:18px; flex-wrap:wrap;}
+  .report-cover .chip{padding:6px 15px; border-radius:20px; font-size:12px; font-weight:800; color:#fff; box-shadow:0 2px 6px rgba(0,0,0,.15);}
+  .report-section{margin-bottom:18px;}
+  .report-section .head{color:#fff; padding:12px 16px; font-weight:800; font-size:14.5px; border-radius:var(--radius) var(--radius) 0 0; letter-spacing:.01em; display:flex; align-items:center; gap:9px;}
+  .report-section .content{border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius) var(--radius); padding:18px; background:#fff; box-shadow:var(--shadow-sm);}
+  .report-section .content .row{margin-bottom:16px;}
+  .report-section .content .row:last-child{margin-bottom:0;}
+  .report-section .content .row b{
+    display:block; font-size:12.5px; color:#000; text-transform:uppercase;
+    letter-spacing:.04em; margin-bottom:6px; font-weight:900;
+  }
+  .report-section .content .row span{font-size:14px; color:#1a1a1a; white-space:pre-wrap; line-height:1.7; font-weight:500;}
+  .no-print{}
+  @media print{
+    .topbar, .navbar, .no-print{display:none !important;}
+    body{background:#fff;}
+    .container{padding:0; max-width:100%;}
+    .card, .report-section .content{border:1px solid #ccc; box-shadow:none;}
+  }
+  .empty-note{color:var(--muted); font-size:12.5px; background:var(--blue-light); padding:14px 16px; border-radius:var(--radius-sm); display:flex; align-items:center; gap:8px;}
+
+  @media (max-width:640px){
+    .topbar{padding:14px 16px;} .navbar{padding:0 10px;} .container{padding:20px 14px 50px;}
+    .card{padding:18px;} .rag-choice{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">ICTD</div>
+    <div>
+      <h1>ICTD Weekly Status Report <span class="version-badge">v1.2</span></h1>
+      <p class="sub">Sulaiman Al Rajhi University — Executive Directorate of Communication &amp; IT</p>
+    </div>
+  </div>
+  <div class="sub" id="todayLabel"><i data-lucide="calendar"></i></div>
+</div>
+
+<div class="navbar no-print">
+  <button data-view="submit" class="active"><i data-lucide="edit-3"></i> Submit Report</button>
+  <button data-view="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+  <button data-view="compiled"><i data-lucide="file-text"></i> Compiled Report (for CIO)</button>
+</div>
+
+<div class="container">
+
+  <!-- SUBMIT VIEW -->
+  <div class="view active" id="view-submit">
+    <div class="card">
+      <h2><span class="icon-badge"><i data-lucide="clipboard-edit"></i></span> Submit Your Sector's Weekly Update</h2>
+      <p class="hint">Each sector manager fills this once per week. Submitting again for the same sector and week overwrites your previous entry.</p>
+
+      <label>Week Of (Sunday)</label>
+      <input type="date" id="f-week">
+
+      <label>Sector</label>
+      <select id="f-sector">
+        <option value="NOC">NOC — Network Operations Center</option>
+        <option value="SOC">SOC — Security Operations Center</option>
+        <option value="CCCU">CCCU — Contact Center / Customer Unit</option>
+        <option value="AAU">AAU — Applications &amp; Automation Unit</option>
+        <option value="ICTD">ICTD</option>
+      </select>
+
+      <label>Overall Status</label>
+      <div class="rag-choice" id="rag-choice">
+        <label class="opt-green"><input type="radio" name="rag" value="Green"><span>🟢 On Track</span></label>
+        <label class="opt-amber"><input type="radio" name="rag" value="Amber"><span>🟡 At Risk</span></label>
+        <label class="opt-red"><input type="radio" name="rag" value="Red"><span>🔴 Critical</span></label>
+      </div>
+
+      <label>Key Activities This Week</label>
+      <div class="list-field" id="list-activities" data-placeholder="e.g., Completed firmware upgrade on core switches"></div>
+      <button type="button" class="btn-add" data-target="list-activities"><i data-lucide="plus"></i> Add item</button>
+
+      <label>Issues / Risks</label>
+      <div class="list-field" id="list-issues" data-placeholder="e.g., Vendor delay on replacement parts"></div>
+      <button type="button" class="btn-add" data-target="list-issues"><i data-lucide="plus"></i> Add item</button>
+
+      <label>Support Needed From CIO / Other Sectors</label>
+      <div class="list-field" id="list-support" data-placeholder="e.g., Budget approval for backup license renewal"></div>
+      <button type="button" class="btn-add" data-target="list-support"><i data-lucide="plus"></i> Add item</button>
+
+      <label>Tasks (Key Activities) for Next Week</label>
+      <div class="list-field" id="list-nexttasks" data-placeholder="e.g., Patch core servers"></div>
+      <button type="button" class="btn-add" data-target="list-nexttasks"><i data-lucide="plus"></i> Add item</button>
+
+      <label>Attachments</label>
+      <p class="hint" style="margin:-2px 0 10px;">Upload supporting files (reports, screenshots, evidence). Add a short brief for each so the CIO knows what it is.</p>
+      <div id="attach-list"></div>
+      <button type="button" class="btn-add" id="btn-add-attach"><i data-lucide="paperclip"></i> Add attachment</button>
+
+      <div id="coffee-section" style="display:none;">
+        <label>Coffee with IT — Attendance Counts</label>
+        <p class="hint" style="margin:-2px 0 10px;">Number of attendees at this week's "Coffee with IT" sessions, by audience.</p>
+        <div class="coffee-grid">
+          <div class="coffee-field">
+            <span><i data-lucide="graduation-cap"></i> Students</span>
+            <input type="number" id="f-coffee-student" min="0" placeholder="0">
+          </div>
+          <div class="coffee-field">
+            <span><i data-lucide="users"></i> Staff</span>
+            <input type="number" id="f-coffee-staff" min="0" placeholder="0">
+          </div>
+          <div class="coffee-field">
+            <span><i data-lucide="briefcase"></i> Admin</span>
+            <input type="number" id="f-coffee-admin" min="0" placeholder="0">
+          </div>
+        </div>
+      </div>
+
+      <label>Submitted By</label>
+      <input type="text" id="f-name" placeholder="Your name">
+
+      <div class="btn-row">
+        <button class="btn" id="btn-submit"><i data-lucide="save"></i> Save Report</button>
+        <button class="btn secondary" id="btn-load"><i data-lucide="rotate-ccw"></i> Load My Existing Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div class="view" id="view-dashboard">
+    <div class="card">
+      <h2><span class="icon-badge"><i data-lucide="layout-dashboard"></i></span> Weekly Dashboard</h2>
+      <p class="hint">Live status across all four sectors, and submission trend over recent weeks.</p>
+      <div class="week-select-row">
+        <label style="margin:0;">Viewing week:</label>
+        <select id="dash-week"></select>
+        <button class="btn secondary no-print" id="btn-refresh"><i data-lucide="refresh-cw"></i> Refresh</button>
+      </div>
+      <div id="coffee-strip-wrap" style="display:none;">
+        <p class="coffee-strip-title"><i data-lucide="coffee"></i> Coffee with IT — Attendance</p>
+        <div class="coffee-strip" id="coffee-strip"></div>
+      </div>
+      <div class="status-grid" id="status-grid"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon-badge"><i data-lucide="trending-up"></i></span> Status Trend (last weeks)</h2>
+      <p class="hint">Overall RAG status per sector, most recent week first.</p>
+      <div class="trend-wrap"><table class="trend" id="trend-table"></table></div>
+    </div>
+  </div>
+
+  <!-- COMPILED REPORT VIEW -->
+  <div class="view" id="view-compiled">
+    <div class="card no-print">
+      <h2><span class="icon-badge"><i data-lucide="file-text"></i></span> Compiled Report</h2>
+      <p class="hint">Select the week to compile into a CIO-ready report, then print or export as PDF.</p>
+      <div class="week-select-row">
+        <select id="report-week"></select>
+        <button class="btn" id="btn-print"><i data-lucide="printer"></i> Print / Save as PDF</button>
+      </div>
+    </div>
+    <div id="report-output"></div>
+  </div>
+
+  <div class="footer-version">ICTD Weekly Status Report — Version 1.2 · Sulaiman Al Rajhi University</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SECTORS = [
+  {code:'NOC', name:'NOC — Network Operations Center', color:'var(--noc)', icon:'network'},
+  {code:'SOC', name:'SOC — Security Operations Center', color:'var(--soc)', icon:'shield'},
+  {code:'CCCU', name:'CCCU — Contact Center / Customer Unit', color:'var(--cccu)', icon:'headset'},
+  {code:'AAU', name:'AAU — Applications & Automation Unit', color:'var(--aau)', icon:'boxes'},
+  {code:'ICTD', name:'ICTD', color:'var(--ops)', icon:'settings'},
+];
+const RAG_PILL = {Green:'pill-green', Amber:'pill-amber', Red:'pill-red'};
+const RAG_DOT = {Green:'dot-green', Amber:'dot-amber', Red:'dot-red'};
+const RAG_LABEL = {Green:'🟢 On Track', Amber:'🟡 At Risk', Red:'🔴 Critical'};
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.innerHTML = '<i data-lucide="check-circle-2"></i> <span></span>';
+  t.querySelector('span').textContent = msg;
+  t.style.display = 'flex';
+  if(window.lucide) lucide.createIcons();
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>{ t.style.display='none'; }, 2800);
+}
+
+function getSundayOf(d){
+  const date = new Date(d);
+  const day = date.getDay();
+  date.setDate(date.getDate() - day);
+  return date.toISOString().slice(0,10);
+}
+
+// LIST FIELD HELPERS (numbered add/remove inputs)
+function renumberList(container){
+  container.querySelectorAll('.list-row').forEach((row, i)=>{
+    row.querySelector('.num').textContent = (i+1)+'.';
+  });
+}
+function addListRow(containerId, value){
+  const container = document.getElementById(containerId);
+  const row = document.createElement('div');
+  row.className = 'list-row';
+  row.innerHTML = `<span class="num"></span><input type="text" value="${value ? escapeAttr(value) : ''}" placeholder="${container.dataset.placeholder||''}"><button type="button" class="btn-remove" title="Remove">✕</button>`;
+  row.querySelector('.btn-remove').addEventListener('click', ()=>{
+    row.remove();
+    renumberList(container);
+  });
+  container.appendChild(row);
+  renumberList(container);
+  return row;
+}
+function getListValues(containerId){
+  const container = document.getElementById(containerId);
+  return [...container.querySelectorAll('.list-row input')]
+    .map(inp=>inp.value.trim())
+    .filter(v=>v.length>0);
+}
+function setListValues(containerId, items){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  if(!items || items.length===0){
+    addListRow(containerId, '');
+  } else {
+    items.forEach(v=>addListRow(containerId, v));
+  }
+}
+function parseStoredList(text){
+  if(!text) return [];
+  return text.split('\n')
+    .map(line=>line.replace(/^\s*\d+\.\s*/, '').trim())
+    .filter(v=>v.length>0);
+}
+function formatListForStorage(items){
+  return items.map((v,i)=>(i+1)+'. '+v).join('\n');
+}
+function escapeAttr(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML.replace(/"/g,'&quot;');
+}
+
+// Initialize each list field with one empty row
+['list-activities','list-issues','list-support','list-nexttasks'].forEach(id=>setListValues(id, []));
+
+// ATTACHMENTS
+const UPLOAD_URL = 'https://elmahdy2020.app.n8n.cloud/webhook/ictd-upload';
+const MAX_ATTACH_MB = 10;
+let attachSeq = 0;
+
+function addAttachRow(existing){
+  const list = document.getElementById('attach-list');
+  const id = 'att-' + (++attachSeq);
+  const row = document.createElement('div');
+  row.className = 'attach-row';
+  row.dataset.url = existing ? (existing.url||'') : '';
+  row.dataset.fileName = existing ? (existing.name||'') : '';
+  row.innerHTML = `
+    <div class="top">
+      <span class="idx"></span>
+      ${existing && existing.url
+        ? `<div style="flex:1;font-size:13px;font-weight:700;">${escapeAttrText(existing.name||'File')}</div>`
+        : `<input type="file" id="${id}-file">`}
+      <button type="button" class="btn-remove" title="Remove"><i data-lucide="x"></i></button>
+    </div>
+    <input type="text" id="${id}-brief" placeholder="Brief: what is this file about?" value="${existing ? escapeAttrText(existing.brief||'') : ''}">
+    <div class="state ${existing && existing.url ? 'done':'pending'}" id="${id}-state">
+      ${existing && existing.url
+        ? `<i data-lucide="check-circle-2"></i> Uploaded — <a href="${escapeAttrText(existing.url)}" target="_blank">open file</a>`
+        : `<i data-lucide="info"></i> Choose a file (max ${MAX_ATTACH_MB} MB)`}
+    </div>`;
+
+  row.querySelector('.btn-remove').addEventListener('click', ()=>{
+    row.remove(); renumberAttach();
+  });
+
+  const fileInput = row.querySelector('input[type=file]');
+  if(fileInput){
+    fileInput.addEventListener('change', ()=>uploadAttachment(row, fileInput, id));
+  }
+
+  list.appendChild(row);
+  renumberAttach();
+  if(window.lucide) lucide.createIcons();
+  return row;
+}
+
+function renumberAttach(){
+  document.querySelectorAll('#attach-list .attach-row').forEach((r,i)=>{
+    r.querySelector('.idx').textContent = i+1;
+  });
+}
+
+function setState(el, cls, html){
+  el.className = 'state ' + cls;
+  el.innerHTML = html;
+  if(window.lucide) lucide.createIcons();
+}
+
+async function uploadAttachment(row, fileInput, id){
+  const stateEl = document.getElementById(id+'-state');
+  const file = fileInput.files[0];
+  if(!file) return;
+  if(file.size > MAX_ATTACH_MB*1024*1024){
+    setState(stateEl,'error',`<i data-lucide="alert-circle"></i> File too large (max ${MAX_ATTACH_MB} MB)`);
+    fileInput.value=''; row.dataset.url=''; return;
+  }
+  setState(stateEl,'uploading','<i data-lucide="loader"></i> Uploading…');
+  try{
+    const base64 = await new Promise((res,rej)=>{
+      const r = new FileReader();
+      r.onload = ()=>res(r.result.split(',')[1]);
+      r.onerror = ()=>rej(new Error('read failed'));
+      r.readAsDataURL(file);
+    });
+    const res = await fetch(UPLOAD_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fileName:file.name, mimeType:file.type||'application/octet-stream', fileData:base64})
+    });
+    if(!res.ok) throw new Error('upload failed');
+    const out = await res.json();
+    const url = out.url || (out[0] && out[0].url);
+    if(!url) throw new Error('no url returned');
+    row.dataset.url = url;
+    row.dataset.fileName = file.name;
+    setState(stateEl,'done',`<i data-lucide="check-circle-2"></i> Uploaded — <a href="${url}" target="_blank">open file</a>`);
+  }catch(e){
+    row.dataset.url='';
+    setState(stateEl,'error','<i data-lucide="alert-circle"></i> Upload failed. Try again.');
+  }
+}
+
+function getAttachments(){
+  return [...document.querySelectorAll('#attach-list .attach-row')]
+    .map(r=>{
+      const briefEl = r.querySelector('input[type=text]');
+      return {name:r.dataset.fileName||'', url:r.dataset.url||'', brief:briefEl?briefEl.value.trim():''};
+    })
+    .filter(a=>a.url);
+}
+function formatAttachmentsForStorage(items){
+  return items.map((a,i)=>`${i+1}. ${a.brief || a.name} — ${a.url}`).join('\n');
+}
+function parseStoredAttachments(text){
+  if(!text) return [];
+  return text.split('\n').map(line=>{
+    const clean = line.replace(/^\s*\d+\.\s*/,'').trim();
+    if(!clean) return null;
+    const idx = clean.lastIndexOf(' — ');
+    if(idx === -1) return null;
+    return {brief:clean.slice(0,idx).trim(), url:clean.slice(idx+3).trim(), name:''};
+  }).filter(Boolean);
+}
+function setAttachments(items){
+  const list = document.getElementById('attach-list');
+  list.innerHTML = '';
+  if(items && items.length){ items.forEach(a=>addAttachRow(a)); }
+  else { addAttachRow(); }
+}
+function escapeAttrText(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML.replace(/"/g,'&quot;');
+}
+
+setAttachments([]);
+document.getElementById('btn-add-attach').addEventListener('click', ()=>addAttachRow());
+
+// Coffee with IT section only applies to ICTD
+function toggleCoffeeSection(){
+  const isICTD = document.getElementById('f-sector').value === 'ICTD';
+  document.getElementById('coffee-section').style.display = isICTD ? 'block' : 'none';
+}
+document.getElementById('f-sector').addEventListener('change', toggleCoffeeSection);
+toggleCoffeeSection();
+
+document.querySelectorAll('.btn-add').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    addListRow(btn.dataset.target, '');
+    const container = document.getElementById(btn.dataset.target);
+    const inputs = container.querySelectorAll('input');
+    inputs[inputs.length-1].focus();
+  });
+});
+
+document.getElementById('f-week').value = getSundayOf(new Date());
+document.getElementById('todayLabel').insertAdjacentHTML('beforeend', '<span>'+new Date().toLocaleDateString('en-GB', {year:'numeric', month:'long', day:'numeric'})+'</span>');
+
+// Navigation
+document.querySelectorAll('.navbar button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.navbar button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+    if(btn.dataset.view === 'dashboard') loadDashboard();
+    if(btn.dataset.view === 'compiled') loadCompiledSetup();
+    if(window.lucide) lucide.createIcons();
+  });
+});
+
+// RAG choice styling
+document.querySelectorAll('#rag-choice input').forEach(inp=>{
+  inp.addEventListener('change', ()=>{
+    document.querySelectorAll('#rag-choice label').forEach(l=>l.classList.remove('sel-green','sel-amber','sel-red'));
+    inp.parentElement.classList.add('sel-'+inp.value.toLowerCase());
+  });
+});
+
+const API_BASE = 'https://elmahdy2020.app.n8n.cloud/webhook';
+const SUBMIT_URL = API_BASE + '/ictd-submit';
+const DATA_URL = API_BASE + '/ictd-data';
+
+let _allRowsCache = null;
+let _cacheTime = 0;
+
+async function fetchAllRows(force){
+  const now = Date.now();
+  if(!force && _allRowsCache && (now - _cacheTime) < 15000){
+    return _allRowsCache;
+  }
+  try{
+    const res = await fetch(DATA_URL, {method:'GET'});
+    if(!res.ok) throw new Error('Bad response');
+    const rows = await res.json();
+    _allRowsCache = Array.isArray(rows) ? rows.filter(r=>r.WeekOf) : [];
+    _cacheTime = now;
+    return _allRowsCache;
+  }catch(e){
+    toast('Could not load data from server. Check your connection.');
+    return _allRowsCache || [];
+  }
+}
+
+async function getWeeksIndex(){
+  const rows = await fetchAllRows();
+  const weeks = [...new Set(rows.map(r=>r.WeekOf))];
+  weeks.sort().reverse();
+  return weeks;
+}
+
+async function saveReport(data){
+  const res = await fetch(SUBMIT_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  if(!res.ok) throw new Error('Save failed');
+  await fetchAllRows(true); // refresh cache
+}
+
+async function getReport(week, sector){
+  const rows = await fetchAllRows();
+  const row = rows.find(r=>r.WeekOf===week && r.Sector===sector);
+  if(!row) return null;
+  return {
+    week: row.WeekOf, sector: row.Sector, status: row.Status,
+    activities: row.KeyActivities, issues: row.Issues,
+    support: row.SupportNeeded, nextWeekTasks: row.NextWeekTasks, attachments: row.Attachments,
+    coffeeStudent: row.CoffeeStudent, coffeeStaff: row.CoffeeStaff, coffeeAdmin: row.CoffeeAdmin,
+    submittedBy: row.SubmittedBy, timestamp: row.Timestamp
+  };
+}
+
+document.getElementById('btn-submit').addEventListener('click', async ()=>{
+  const week = document.getElementById('f-week').value;
+  const sector = document.getElementById('f-sector').value;
+  const ragEl = document.querySelector('#rag-choice input:checked');
+  if(!week || !sector || !ragEl){
+    toast('Please select week, sector, and overall status.');
+    return;
+  }
+  const data = {
+    week, sector,
+    status: ragEl.value,
+    activities: formatListForStorage(getListValues('list-activities')),
+    issues: formatListForStorage(getListValues('list-issues')),
+    support: formatListForStorage(getListValues('list-support')),
+    nextWeekTasks: formatListForStorage(getListValues('list-nexttasks')),
+    attachments: formatAttachmentsForStorage(getAttachments()),
+    coffeeStudent: sector==='ICTD' ? (document.getElementById('f-coffee-student').value.trim()||'0') : '',
+    coffeeStaff: sector==='ICTD' ? (document.getElementById('f-coffee-staff').value.trim()||'0') : '',
+    coffeeAdmin: sector==='ICTD' ? (document.getElementById('f-coffee-admin').value.trim()||'0') : '',
+    submittedBy: document.getElementById('f-name').value.trim(),
+    timestamp: new Date().toISOString()
+  };
+  try{
+    await saveReport(data);
+    toast('Report saved for '+sector+' — week of '+week);
+  }catch(e){
+    toast('Could not save. Please try again.');
+  }
+});
+
+document.getElementById('btn-load').addEventListener('click', async ()=>{
+  const week = document.getElementById('f-week').value;
+  const sector = document.getElementById('f-sector').value;
+  const data = await getReport(week, sector);
+  if(!data){ toast('No existing entry for this sector/week.'); return; }
+  setListValues('list-activities', parseStoredList(data.activities));
+  setListValues('list-issues', parseStoredList(data.issues));
+  setListValues('list-support', parseStoredList(data.support));
+  setListValues('list-nexttasks', parseStoredList(data.nextWeekTasks));
+  setAttachments(parseStoredAttachments(data.attachments));
+  document.getElementById('f-coffee-student').value = data.coffeeStudent || '';
+  document.getElementById('f-coffee-staff').value = data.coffeeStaff || '';
+  document.getElementById('f-coffee-admin').value = data.coffeeAdmin || '';
+  toggleCoffeeSection();
+  document.getElementById('f-name').value = data.submittedBy || '';
+  const ragInput = document.querySelector('#rag-choice input[value="'+data.status+'"]');
+  if(ragInput){ ragInput.checked = true; ragInput.dispatchEvent(new Event('change')); }
+  toast('Loaded existing entry.');
+});
+
+// DASHBOARD
+async function populateWeekSelect(selectEl){
+  const weeks = await getWeeksIndex();
+  const current = getSundayOf(new Date());
+  const allWeeks = weeks.includes(current) ? weeks : [current, ...weeks];
+  selectEl.innerHTML = allWeeks.map(w=>`<option value="${w}">Week of ${w}</option>`).join('');
+  return allWeeks;
+}
+
+async function loadDashboard(){
+  const sel = document.getElementById('dash-week');
+  const weeks = await populateWeekSelect(sel);
+  sel.onchange = ()=>renderStatusGrid(sel.value);
+  await renderStatusGrid(sel.value || weeks[0]);
+  await renderTrend(weeks);
+}
+
+async function renderCoffeeStrip(week){
+  const wrap = document.getElementById('coffee-strip-wrap');
+  const strip = document.getElementById('coffee-strip');
+  const data = await getReport(week, 'ICTD');
+  const num = v => { const n = parseInt(v,10); return isNaN(n) ? 0 : n; };
+  if(!data){ wrap.style.display = 'none'; strip.innerHTML=''; return; }
+  const st = num(data.coffeeStudent), sf = num(data.coffeeStaff), ad = num(data.coffeeAdmin);
+  if(st===0 && sf===0 && ad===0){ wrap.style.display='none'; strip.innerHTML=''; return; }
+  const total = st + sf + ad;
+  strip.innerHTML = `
+    <div class="coffee-kpi total">
+      <span class="k-label"><i data-lucide="coffee"></i> Total</span>
+      <span class="k-value">${total}</span>
+    </div>
+    <div class="coffee-kpi">
+      <span class="k-label"><i data-lucide="graduation-cap"></i> Students</span>
+      <span class="k-value">${st}</span>
+    </div>
+    <div class="coffee-kpi">
+      <span class="k-label"><i data-lucide="users"></i> Staff</span>
+      <span class="k-value">${sf}</span>
+    </div>
+    <div class="coffee-kpi">
+      <span class="k-label"><i data-lucide="briefcase"></i> Admin</span>
+      <span class="k-value">${ad}</span>
+    </div>`;
+  wrap.style.display = 'block';
+  if(window.lucide) lucide.createIcons();
+}
+
+async function renderStatusGrid(week){
+  await renderCoffeeStrip(week);
+  const grid = document.getElementById('status-grid');
+  grid.innerHTML = '';
+  for(const s of SECTORS){
+    const data = await getReport(week, s.code);
+    const card = document.createElement('div');
+    card.className = 'sector-card';
+    if(data){
+      card.innerHTML = `
+        <div class="head" style="background:${s.color}"><i data-lucide="${s.icon}"></i> ${s.code}</div>
+        <div class="body">
+          <span class="rag-pill ${RAG_PILL[data.status]}">${RAG_LABEL[data.status]}</span>
+          <div><b>Activities:</b> ${escapeHtml(data.activities)||'—'}</div>
+          <div><b>Issues:</b> ${escapeHtml(data.issues)||'—'}</div>
+          <div><b>Next Week:</b> ${escapeHtml(data.nextWeekTasks)||'—'}</div>
+          <div><b>Attachments:</b> ${parseStoredAttachments(data.attachments).length || 0}</div>
+          <div class="meta">Submitted by ${escapeHtml(data.submittedBy)||'—'}</div>
+        </div>`;
+    } else {
+      card.innerHTML = `
+        <div class="head" style="background:${s.color}"><i data-lucide="${s.icon}"></i> ${s.code}</div>
+        <div class="missing"><i data-lucide="inbox" style="width:22px;height:22px;opacity:.4;display:block;margin:0 auto 6px;"></i>No submission yet for this week</div>`;
+    }
+    grid.appendChild(card);
+  }
+  if(window.lucide) lucide.createIcons();
+}
+
+async function renderTrend(weeks){
+  const recent = weeks.slice(0,8);
+  const table = document.getElementById('trend-table');
+  let html = '<tr><th style="text-align:left;">Week</th>' + SECTORS.map(s=>`<th>${s.code}</th>`).join('') + '</tr>';
+  for(const w of recent){
+    html += `<tr><td class="week-label">${w}</td>`;
+    for(const s of SECTORS){
+      const data = await getReport(w, s.code);
+      const dot = data ? RAG_DOT[data.status] : 'dot-none';
+      html += `<td><span class="dot ${dot}" title="${data?data.status:'No submission'}"></span></td>`;
+    }
+    html += '</tr>';
+  }
+  table.innerHTML = html || '<tr><td>No data yet</td></tr>';
+}
+
+document.getElementById('btn-refresh').addEventListener('click', async ()=>{
+  await fetchAllRows(true);
+  await loadDashboard();
+});
+
+// COMPILED REPORT
+async function loadCompiledSetup(){
+  const sel = document.getElementById('report-week');
+  await populateWeekSelect(sel);
+  sel.onchange = ()=>renderCompiledReport(sel.value);
+  renderCompiledReport(sel.value);
+}
+
+async function renderCompiledReport(week){
+  const out = document.getElementById('report-output');
+  const chips = SECTORS.map(s=>`<span class="chip" style="background:${s.color}">${s.code}</span>`).join('');
+  let html = `
+    <div class="report-cover">
+      <h1>ICTD Status Report</h1>
+      <div style="font-size:13px; opacity:.9;">Week of ${week}</div>
+      <div class="chips">${chips}</div>
+    </div>`;
+
+  let anyMissing = false;
+  for(const s of SECTORS){
+    const data = await getReport(week, s.code);
+    html += `<div class="report-section">
+      <div class="head" style="background:${s.color}"><i data-lucide="${s.icon}"></i> ${s.name}</div>
+      <div class="content">`;
+    if(data){
+      html += `
+        <div class="row"><b>Overall Status</b><span class="rag-pill ${RAG_PILL[data.status]}">${RAG_LABEL[data.status]}</span></div>
+        <div class="row"><b>Key Activities</b><span>${escapeHtml(data.activities)||'—'}</span></div>
+        <div class="row"><b>Issues / Risks</b><span>${escapeHtml(data.issues)||'—'}</span></div>
+        <div class="row"><b>Support Needed</b><span>${escapeHtml(data.support)||'—'}</span></div>
+        <div class="row"><b>Tasks for Next Week</b><span>${escapeHtml(data.nextWeekTasks)||'—'}</span></div>
+        <div class="row"><b>Attachments</b><span>${renderAttachLinks(data.attachments)}</span></div>
+        ${s.code==='ICTD' ? `<div class="row"><b>Coffee with IT — Attendance</b><span>Students: ${data.coffeeStudent||0} · Staff: ${data.coffeeStaff||0} · Admin: ${data.coffeeAdmin||0} · Total: ${(parseInt(data.coffeeStudent,10)||0)+(parseInt(data.coffeeStaff,10)||0)+(parseInt(data.coffeeAdmin,10)||0)}</span></div>` : ''}
+        <div class="row"><b>Submitted By</b><span>${escapeHtml(data.submittedBy)||'—'}</span></div>`;
+    } else {
+      anyMissing = true;
+      html += `<div class="empty-note"><i data-lucide="alert-circle"></i> No submission received yet from ${s.code} for this week.</div>`;
+    }
+    html += `</div></div>`;
+  }
+  out.innerHTML = html;
+  if(window.lucide) lucide.createIcons();
+}
+
+document.getElementById('btn-print').addEventListener('click', ()=>window.print());
+
+function escapeHtml(str){
+  if(!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML.replace(/\n/g,'<br>');
+}
+
+function renderAttachLinks(text){
+  const items = parseStoredAttachments(text);
+  if(!items.length) return '—';
+  return items.map((a,i)=>
+    `${i+1}. ${escapeHtml(a.brief)} — <a href="${escapeAttrText(a.url)}" target="_blank" style="color:var(--blue);font-weight:700;">open file</a>`
+  ).join('<br>');
+}
+
+if(window.lucide) lucide.createIcons();
+</script>
+</body>
+</html>
