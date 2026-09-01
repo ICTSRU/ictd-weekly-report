@@ -4,7 +4,7 @@ Internal web app for **Sulaiman Al Rajhi University — Executive Directorate of
 
 Replaces the previous PowerPoint-based weekly report with a structured web form, a live dashboard, and a print-ready report for the CIO.
 
-**Current version: v2.5**
+**Current version: v2.6**
 
 ---
 

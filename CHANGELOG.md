@@ -2,6 +2,12 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v2.6
+
+- **Fixed a timezone bug that could save a report against the wrong week.** Date strings were built with `toISOString()`, which converts to UTC; in Saudi time (UTC+3) any moment before 03:00 local rolled the date back a day, so a report filed early on a Sunday was stored against the previous Saturday and appeared as its own row on the dashboard trend. All week handling now uses local date parts.
+- Weeks are displayed as `W35 — Sun 30 Aug 2026` everywhere — the dashboard week selector, the trend table, the compiled report selector, and the report cover — instead of a bare date.
+- Any stored week value that is not a Sunday is normalised to the Sunday of its week when read, so older or imported rows merge into the correct week instead of creating a phantom column.
+
 ## v2.5
 
 - **Event Supported By** is now a dropdown drawing from the same shared `TEAM_NAMES` list as Submitted By and Presented By.
