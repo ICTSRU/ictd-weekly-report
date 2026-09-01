@@ -2,6 +2,37 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v2.5
+
+- **Event Supported By** is now a dropdown drawing from the same shared `TEAM_NAMES` list as Submitted By and Presented By.
+- As with the other name fields, a value from an older entry that is not on the list is preserved and added to the dropdown when that entry is loaded.
+
+## v2.4
+
+- **Submitted By** and **Presented By** are now dropdown lists instead of free-text fields, drawing from one shared list of team members. This keeps names spelled consistently so they group correctly in reporting.
+- If an older entry contains a name that is no longer on the list, that name is added to the dropdown when the entry is loaded, so existing data is never silently changed.
+
+To edit the list of names, change the `TEAM_NAMES` array near the top of the script in `index.html`.
+
+## v2.3
+
+- The generic fields (Key Activities, Issues / Risks, Support Needed, Tasks for Next Week) are now **hidden for the Coffee with IT and Event Support sectors**, which have their own dedicated fields instead.
+- Those fields are also omitted from the dashboard cards and the compiled report for those two sectors, so their sections show only what is relevant.
+- Anything typed into the generic fields before switching to one of those sectors is not submitted, so no stale text can leak into a Coffee with IT or Event Support entry.
+
+## v2.2
+
+- Added a **Coffee with IT** sector, with its own dashboard card, trend column, and section in the compiled report.
+- Its session entries capture Session Topic, Duration, Type of Attendance (Academic / Student / Admin), and Presented By. Add one entry per session; each card is numbered and titled by the topic.
+- Sessions appear in the compiled CIO report as a formatted list, and as a "Sessions Held" count on the dashboard.
+- Added the `Sessions` sheet column (stored as JSON so all fields round-trip cleanly).
+
+  Note: the Coffee with IT **attendance counts** (Students / Staff / Admin) still live under the **ICTD** sector and feed the dashboard KPI strip. The two are independent.
+
+## v2.1
+
+- Centred the navigation tabs (Submit Report / Dashboard / Compiled Report) in the purple bar instead of left-aligning them.
+
 ## v2.0
 
 - **Week Of (Sunday) is now a dropdown of Sundays only**, replacing the free date picker. Every option is guaranteed to be a Sunday, so a mid-week date can no longer be selected by mistake and split a week's data across two entries.

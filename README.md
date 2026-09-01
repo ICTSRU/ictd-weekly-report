@@ -4,7 +4,7 @@ Internal web app for **Sulaiman Al Rajhi University — Executive Directorate of
 
 Replaces the previous PowerPoint-based weekly report with a structured web form, a live dashboard, and a print-ready report for the CIO.
 
-**Current version: v2.0**
+**Current version: v2.5**
 
 ---
 
@@ -36,6 +36,7 @@ Do not make this repository public without first adding authentication to the n8
 - **AAU** — Applications & Automation Unit
 - **ICTD** — includes the Coffee with IT attendance counts (Students / Staff / Admin)
 - **Event Support** — includes per-event entries (name, date, time, location, attendees, supported by, feedback)
+- **Coffee with IT** — includes per-session entries (topic, duration, type of attendance, presented by)
 
 ### Submission behaviour
 
@@ -92,6 +93,7 @@ Common edit points:
 | Sectors | the `SECTORS` array, and the `<select id="f-sector">` options |
 | Brand colours | the `:root` CSS variables |
 | Backend URLs | `API_BASE` and `UPLOAD_URL` |
+| List of people in the Submitted By / Presented By dropdowns | `TEAM_NAMES` |
 | Attachment size cap | `MAX_ATTACH_MB` (currently 10) |
 
 ### Versioning
