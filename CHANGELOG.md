@@ -2,6 +2,29 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v3.0
+
+- Sectors now display a readable label instead of their internal code: **Coffee with IT** rather than `CoffeeIT`, and **Event Support** rather than `Events`. Applied to the dashboard cards, the trend table headers, the compiled report cover chips, and the "no submission" message.
+- The stored sector codes are unchanged, so existing sheet data is unaffected.
+
+## v2.9
+
+- **Removed the manual Coffee with IT count fields from the ICTD sector.** Since v2.8 the dashboard derives these figures from the Coffee with IT session entries, so the manual fields no longer affected anything and were misleading to fill in.
+- Also removed the matching "Coffee with IT — Attendance" row from the compiled report, and the now-unused styles.
+- The `CoffeeStudent` / `CoffeeStaff` / `CoffeeAdmin` columns are left in the Google Sheet with their existing values, so no historical data is lost. They are simply no longer written to or read.
+
+## v2.8
+
+- **Coffee with IT status is now set automatically from the session count** — 1 or fewer = Critical, 2–3 = At Risk, more than 3 = On Track. The manual status buttons are replaced by a live badge that updates as sessions are added or removed, and the computed value is what gets saved.
+- The dashboard **Coffee with IT KPI strip now reads from the session entries** rather than the manual counts under ICTD. It shows total sessions plus a breakdown by audience (Academic / Student / Admin), and hides itself when no sessions were recorded for that week.
+
+  Note: the manual Coffee with IT count fields under the **ICTD** sector no longer feed the dashboard. They still save to the `CoffeeStudent` / `CoffeeStaff` / `CoffeeAdmin` columns, but nothing displays them.
+
+## v2.7
+
+- Added **Session Date** and **Attendance Email** to the Coffee with IT session entries. Both appear in the compiled CIO report alongside the existing session details.
+- No sheet change was needed: sessions are stored as JSON in the existing `Sessions` column, so older entries without these fields still load correctly.
+
 ## v2.6
 
 - **Fixed a timezone bug that could save a report against the wrong week.** Date strings were built with `toISOString()`, which converts to UTC; in Saudi time (UTC+3) any moment before 03:00 local rolled the date back a day, so a report filed early on a Sunday was stored against the previous Saturday and appeared as its own row on the dashboard trend. All week handling now uses local date parts.

@@ -4,7 +4,7 @@ Internal web app for **Sulaiman Al Rajhi University — Executive Directorate of
 
 Replaces the previous PowerPoint-based weekly report with a structured web form, a live dashboard, and a print-ready report for the CIO.
 
-**Current version: v2.6**
+**Current version: v3.0**
 
 ---
 
@@ -34,9 +34,9 @@ Do not make this repository public without first adding authentication to the n8
 - **SOC** — Security Operations Center
 - **DSSC** — Digital Support and Service Center
 - **AAU** — Applications & Automation Unit
-- **ICTD** — includes the Coffee with IT attendance counts (Students / Staff / Admin)
+- **ICTD**
 - **Event Support** — includes per-event entries (name, date, time, location, attendees, supported by, feedback)
-- **Coffee with IT** — includes per-session entries (topic, duration, type of attendance, presented by)
+- **Coffee with IT** — includes per-session entries (topic, date, duration, type of attendance, attendance email, presented by)
 
 ### Submission behaviour
 
@@ -65,7 +65,7 @@ index.html  (static, no build step)
 
 ### Sheet columns
 
-`Timestamp`, `WeekOf`, `Sector`, `Status`, `KeyActivities`, `Issues`, `KPIs` *(unused)*, `SupportNeeded`, `SubmittedBy`, `NextWeekTasks`, `Attachments`, `CoffeeStudent`, `CoffeeStaff`, `CoffeeAdmin`
+`Timestamp`, `WeekOf`, `Sector`, `Status`, `KeyActivities`, `Issues`, `KPIs` *(unused)*, `SupportNeeded`, `SubmittedBy`, `NextWeekTasks`, `Attachments`, `CoffeeStudent` *(unused)*, `CoffeeStaff` *(unused)*, `CoffeeAdmin` *(unused)*, `Events`, `Sessions`
 
 ---
 
@@ -104,8 +104,10 @@ Every change must bump the version in **three** places in `index.html`:
 2. the header badge — `<span class="version-badge">vX.Y</span>`
 3. the page footer — `Version X.Y · Sulaiman Al Rajhi University`
 
-- **Minor** (v1.3, v1.4…) — styling, new fields, small fixes
-- **Major** (v2.0) — structural change: new backend, new module, reworked data model
+Version numbers use a single digit after the decimal point: v2.7 → v2.8 → v2.9 → **v3.0**. There is no v2.10.
+
+- **Minor** (v3.1, v3.2 …) — styling, new fields, small fixes
+- **Major** (v4.0) — structural change: new backend, new module, reworked data model, or the step up from x.9
 
 Record what changed in `CHANGELOG.md`.
 
