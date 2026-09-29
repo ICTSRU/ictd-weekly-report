@@ -2,6 +2,40 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v3.6
+
+- Moved **Load My Existing Entry** up beside the Sector dropdown, so it now sits with the week and sector it acts on rather than at the bottom next to Save Report. The bottom row keeps **Save Report** on its own.
+- On narrow screens the button drops below the dropdown instead of squeezing beside it.
+- **Fixed:** the sector dropdown still read "Mohamed ElMahdy" while the dashboard, trend table and report all showed "M. ElMahdy" — the v3.3 rename missed the dropdown option. All four now match.
+
+## v3.5
+
+- **The Status Trend table is now clickable.**
+  - Clicking a **status dot** switches the Viewing week to that row's week, redraws the sector cards for it, and jumps to that sector's card.
+  - Clicking a **sector column header** jumps to that sector's card in the week currently being viewed.
+  - The destination card flashes briefly so it is easy to spot after the jump.
+- Added a **back-to-top arrow** in the bottom-right corner. It appears once the page is scrolled and returns to the top smoothly. Hidden when printing.
+- The arrow is drawn as inline SVG rather than loaded from the icon CDN, so it still shows if the CDN is unreachable or the file is opened offline.
+
+## v3.4
+
+- Changed the report cover background from baby blue to **light gray**, with the title, date and summary in dark neutral text.
+- **Enlarged the sector chips and laid them out on a six-column grid**, so the twelve sectors fill exactly two full rows edge to edge instead of leaving a ragged gap in the cover box. Larger name text, check mark and status pill.
+- The grid steps down to four, three and two columns on narrower screens so the rows stay even.
+
+## v3.3
+
+- Shortened the **Mohamed ElMahdy** sector label to **M. ElMahdy**. Only the display label changed; the stored sector code is still `MElMahdy`, so existing sheet rows are unaffected.
+- **Sector chips on the report cover are now clickable** — selecting one jumps straight to that sector's section further down the report, with smooth scrolling and a visible keyboard focus ring.
+- **Chips are sorted with submitted sectors first**, then the ones still outstanding; within each group the usual sector order is kept.
+- Changed the report cover background from purple to **baby blue**, with the title, date and summary switched to dark navy so the text stays readable.
+
+## v3.2
+
+- The sector chips on the compiled report cover now show, under each name, a **check mark if that sector submitted** (a dimmed cross if not) together with its **status** — On Track / At Risk / Critical, or "Not submitted".
+- Added a submission count to the cover ("4 of 12 sectors submitted"), so the CIO sees coverage at a glance.
+- **Fixed:** brand colours, status pills and the submitted marks were dropped when printing or exporting to PDF, because the page never set `print-color-adjust`. The new marks would have printed colourless. Colours are now preserved, and chips and report sections no longer split across pages.
+
 ## v3.1
 
 - Added five personal sectors: **Mohamed ElMahdy**, **Ammar**, **Nayed**, **Abd Alazez**, and **Azzam**. Each has its own colour, dashboard card, trend column, and section in the compiled report.
