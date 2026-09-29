@@ -4,7 +4,7 @@ Internal web app for **Sulaiman Al Rajhi University — Executive Directorate of
 
 Replaces the previous PowerPoint-based weekly report with a structured web form, a live dashboard, and a print-ready report for the CIO.
 
-**Current version: v3.0**
+**Current version: v3.1**
 
 ---
 
@@ -37,6 +37,7 @@ Do not make this repository public without first adding authentication to the n8
 - **ICTD**
 - **Event Support** — includes per-event entries (name, date, time, location, attendees, supported by, feedback)
 - **Coffee with IT** — includes per-session entries (topic, date, duration, type of attendance, attendance email, presented by)
+- **Mohamed ElMahdy**, **Ammar**, **Nayed**, **Abd Alazez**, **Azzam** — personal sectors using the standard fields
 
 ### Submission behaviour
 

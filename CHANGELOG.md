@@ -2,6 +2,11 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v3.1
+
+- Added five personal sectors: **Mohamed ElMahdy**, **Ammar**, **Nayed**, **Abd Alazez**, and **Azzam**. Each has its own colour, dashboard card, trend column, and section in the compiled report.
+- They use the standard fields (Key Activities, Issues / Risks, Support Needed, Tasks for Next Week) and the manual status buttons, matching NOC / SOC / DSSC / AAU.
+
 ## v3.0
 
 - Sectors now display a readable label instead of their internal code: **Coffee with IT** rather than `CoffeeIT`, and **Event Support** rather than `Events`. Applied to the dashboard cards, the trend table headers, the compiled report cover chips, and the "no submission" message.
