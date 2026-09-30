@@ -2,6 +2,14 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v4.0
+
+- Added the **ITOC (IT Operations Center) logo to the bottom-left of the footer**, hyperlinked to the ITOC forms hub at `https://ictsru.github.io/ITOC/#forms` (opens in a new tab, `rel="noopener noreferrer"`).
+- The footer is now a three-column grid: logo left, version text centred, with a rule above it. The version line stays exactly centred regardless of the logo's width.
+- The logo is **embedded as a base64 PNG**, so the file stays fully self-contained and the footer never depends on a CDN or a relative image path.
+- The white background was made transparent and the image trimmed and resized to 292x120 (rendered at 40px tall), so it sits cleanly on the page background at retina sharpness for ~28 KB.
+- On screens narrower than 640px the footer stacks and centres. Hover lifts the logo slightly; this is disabled for reduced-motion users and in print.
+
 ## v3.9
 
 - The **Sector dropdown now glows** with a soft pulsing purple halo and a purple border, so it reads as the obvious next choice after the week.
