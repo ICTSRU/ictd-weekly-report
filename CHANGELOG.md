@@ -2,6 +2,21 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v3.9
+
+- The **Sector dropdown now glows** with a soft pulsing purple halo and a purple border, so it reads as the obvious next choice after the week.
+- The glow stops while the dropdown is focused, is replaced by a static halo for anyone who has reduced motion turned on, and is removed entirely when printing.
+
+## v3.8
+
+- Every week in the Week Of (Sunday) dropdown now reads **plain black at normal weight**, so only the **ACTIVE WEEK** stands out in red bold. The closed selector follows the same rule — red bold while the active week is chosen, black once another week is picked.
+
+## v3.7
+
+- The **week after the current one is now marked as the ACTIVE WEEK** in the Week Of (Sunday) dropdown — shown in red bold with a star, both in the open list and in the closed selector.
+- That active week is now **preselected when the form loads**, instead of the current week. The current week keeps its "(current week)" note.
+- The active week is always computed as current week + 7 days, so it rolls forward on its own — verified across a Sunday boundary and the year end.
+
 ## v3.6
 
 - Moved **Load My Existing Entry** up beside the Sector dropdown, so it now sits with the week and sector it acts on rather than at the bottom next to Save Report. The bottom row keeps **Save Report** on its own.
