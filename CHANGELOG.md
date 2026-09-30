@@ -2,6 +2,15 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v4.1
+
+- Renamed the label to **Issues / Risk** in all three places it appears: the submission form, the dashboard sector cards, and the compiled CIO report. The dashboard previously read just "Issues".
+- **Any sector with content under Issues / Risk now shows it in bold red**, so a risk is visible at a glance on the dashboard and in the printed report instead of reading like every other line.
+- In the form, the **Issues / Risk label turns bold red with a red `!` badge** as soon as the list holds anything, and returns to normal when it is cleared.
+- Blank rows do not trigger the flag. The empty starter row the form always shows, whitespace-only text, and stored rows that are just a number with no text are all correctly treated as "no risk".
+- The flag tracks the list live through a `MutationObserver`, so it stays correct when rows are added, removed with the ✕, replaced by Load My Existing Entry, or cleared after a save.
+- Red is forced in print with `print-color-adjust: exact`, so risks stay red in the PDF sent to the CIO.
+
 ## v4.0
 
 - Added the **ITOC (IT Operations Center) logo to the bottom-left of the footer**, hyperlinked to the ITOC forms hub at `https://ictsru.github.io/ITOC/#forms` (opens in a new tab, `rel="noopener noreferrer"`).
