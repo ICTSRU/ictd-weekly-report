@@ -1,0 +1,416 @@
+{
+  "name": "ICTD Weekly Report — Email to CIO",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "sched-001",
+      "name": "Every Sunday 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ictd-report-email",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "*",
+          "rawBody": false
+        }
+      },
+      "id": "hook-001",
+      "name": "Email Button Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        100
+      ],
+      "webhookId": "ictd-report-email"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ICTD Weekly Report — Resolve Week\n// Decides which week to report on, for both triggers.\n//\n// Scheduled: the Sunday it fires IS the week. Firing Sun 04 Oct 2026 08:00\n// reports W40 — Sun 04 Oct 2026. Sector managers fill the upcoming week in\n// advance (the app marks current+7 as ACTIVE WEEK), so that week's data is\n// already in the sheet by Sunday morning.\n//\n// Manual: the button sends the week the user picked.\n\nconst SHEET_TZ = 'Asia/Riyadh';\n\nfunction riyadhNow() {\n  // Code nodes run in UTC; re-read the clock in Riyadh before taking date parts.\n  return new Date(new Date().toLocaleString('en-US', { timeZone: SHEET_TZ }));\n}\n\nfunction toISO(d) {\n  const p = n => String(n).padStart(2, '0');\n  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());\n}\n\nfunction parseLocal(s) {\n  const m = String(s).slice(0, 10).split('-');\n  return new Date(Number(m[0]), Number(m[1]) - 1, Number(m[2]));\n}\n\n// Snap any date back to the Sunday that starts its week.\nfunction sundayOf(d) {\n  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());\n  x.setDate(x.getDate() - x.getDay());\n  return toISO(x);\n}\n\nfunction isoWeek(d) {\n  const t = new Date(d.getFullYear(), d.getMonth(), d.getDate());\n  t.setDate(t.getDate() + 4 - (t.getDay() || 7));\n  const ys = new Date(t.getFullYear(), 0, 1);\n  return Math.ceil((((t - ys) / 86400000) + 1) / 7);\n}\n\nfunction weekLabel(iso) {\n  const d = parseLocal(iso);\n  const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\n  return 'W' + String(isoWeek(d)).padStart(2, '0') + ' — Sun ' +\n         String(d.getDate()).padStart(2, '0') + ' ' + M[d.getMonth()] + ' ' + d.getFullYear();\n}\n\n// A webhook run carries a body; a scheduled run does not.\nlet requested = '';\nlet origin = 'Scheduled';\ntry {\n  const body = $input.first().json.body;\n  if (body) {\n    origin = 'Manual';\n    const raw = (typeof body === 'string') ? JSON.parse(body) : body;\n    if (raw && raw.week) requested = String(raw.week);\n  }\n} catch (e) { /* malformed body -> fall through to the scheduled week */ }\n\nconst weekOf = /^\\d{4}-\\d{2}-\\d{2}$/.test(requested)\n  ? sundayOf(parseLocal(requested))\n  : sundayOf(riyadhNow());\n\nreturn [{ json: { weekOf: weekOf, weekLabel: weekLabel(weekOf), origin: origin } }];\n"
+      },
+      "id": "code-001",
+      "name": "Resolve Week",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        -10
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SOtq628_WlTon8I6avIOd8537h9qZm1CcuPECAGLcwg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Submissions",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "sheet-001",
+      "name": "Get Submissions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        -10
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_ME",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ICTD Weekly Report — Build Email\n// Renders the full report INLINE in the email body (Option A: no PDF attachment).\n//\n// Email clients strip <style> blocks and ignore flexbox/grid, so everything\n// here is tables with inline styles — the same constraint as a PDF renderer.\n\nconst APP_URL = 'https://ictsru.github.io/ictd-weekly-report/';\n\nconst PURPLE = '#501e8c', RED = '#c0272d', INK = '#241436',\n      MUTED  = '#6b5a80', LINE = '#e4dcf0';\n\nconst SECTORS = [\n  {code:'NOC',       name:'NOC — Network Operations Center',           color:'#0a6eaa'},\n  {code:'SOC',       name:'SOC — Security Operations Center',          color:'#c0272d'},\n  {code:'DSSC',      name:'DSSC — Digital Support and Service Center', color:'#0f7b6c'},\n  {code:'AAU',       name:'AAU — Applications & Automation Unit',      color:'#8a5a00'},\n  {code:'ICTD',      name:'ICTD',                                           color:'#501e8c'},\n  {code:'Events',    name:'Event Support',                                  color:'#b03a8c'},\n  {code:'CoffeeIT',  name:'Coffee with IT',                                 color:'#6b4423'},\n  {code:'MElMahdy',  name:'M. ElMahdy',                                     color:'#3a1464'},\n  {code:'Ammar',     name:'Ammar',                                          color:'#3a1464'},\n  {code:'Nayed',     name:'Nayed',                                          color:'#3a1464'},\n  {code:'AbdAlazez', name:'Abd Alazez',                                     color:'#3a1464'},\n  {code:'Azzam',     name:'Azzam',                                          color:'#3a1464'}\n];\n\nconst RAG = {\n  Green: {label:'On Track', bg:'#e6f4ea', fg:'#14683a'},\n  Amber: {label:'At Risk',  bg:'#fdf1dd', fg:'#8a5a00'},\n  Red:   {label:'Critical', bg:'#fdeaea', fg:'#c0272d'}\n};\n\nfunction esc(s) {\n  if (s === null || s === undefined) return '';\n  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')\n                  .replace(/>/g,'&gt;').replace(/\"/g,'&quot;');\n}\nfunction nl2br(s) { return esc(s).replace(/\\r?\\n/g, '<br>'); }\n\nfunction meta(code) {\n  return SECTORS.find(s => s.code === code) || {code: code, name: code, color: PURPLE};\n}\n\n// Blank rows must not count as a risk — matches the app's own rule.\nfunction hasRisk(text) {\n  if (!text) return false;\n  return String(text).split('\\n')\n    .some(l => l.replace(/^\\s*\\d+\\s*[.)\\-]\\s*/, '').trim().length > 0);\n}\n\nfunction countJson(s) {\n  if (!s) return 0;\n  try { const a = JSON.parse(s); return Array.isArray(a) ? a.length : 0; }\n  catch (e) { return 0; }\n}\n\nfunction sundayOf(v) {\n  if (!v) return '';\n  const s = String(v).slice(0, 10);\n  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(s)) return '';\n  const m = s.split('-');\n  const d = new Date(Number(m[0]), Number(m[1]) - 1, Number(m[2]));\n  d.setDate(d.getDate() - d.getDay());\n  const p = n => String(n).padStart(2, '0');\n  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());\n}\n\n/* ------------------------------------------------------------------ */\n\nconst ctx       = $('Resolve Week').first().json;\nconst weekOf    = ctx.weekOf;\nconst weekLabel = ctx.weekLabel;\n\n// Keep this week's rows; a later row for the same sector wins, matching upsert.\nconst bySector = {};\nfor (const item of $('Get Submissions').all()) {\n  const r = item.json;\n  if (sundayOf(r.WeekOf) !== weekOf) continue;\n  const code = String(r.Sector || '').trim();\n  if (!code) continue;\n  bySector[code] = {\n    sector:   code,\n    status:   String(r.Status || '').trim(),\n    acts:     String(r.KeyActivities || '').trim(),\n    issues:   String(r.Issues || '').trim(),\n    support:  String(r.SupportNeeded || '').trim(),\n    next:     String(r.NextWeekTasks || '').trim(),\n    by:       String(r.SubmittedBy || '').trim(),\n    attach:   String(r.Attachments || '').trim(),\n    events:   String(r.Events || '').trim(),\n    sessions: String(r.Sessions || '').trim()\n  };\n}\n\nconst rows = [];\nSECTORS.forEach(s => { if (bySector[s.code]) rows.push(bySector[s.code]); });\nObject.keys(bySector).forEach(k => {\n  if (!SECTORS.some(s => s.code === k)) rows.push(bySector[k]);\n});\n\nif (!rows.length) {\n  return [{ json: {\n    skip: true, ok: false, week: weekOf, label: weekLabel, sectors: 0,\n    error: 'No submissions found for ' + weekLabel + ' — nothing sent.'\n  }}];\n}\n\nconst counts = {Green: 0, Amber: 0, Red: 0};\nrows.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });\n\nconst attention = rows.filter(r => r.status === 'Red' || r.status === 'Amber');\n\n/* ----------------------------- HTML ------------------------------- */\n\nfunction row(label, value, red) {\n  const c = red ? ('color:' + RED + ';font-weight:bold;') : '';\n  return '<tr>' +\n    '<td style=\"width:150px;padding:6px 12px 6px 0;color:' + (red ? RED : MUTED) +\n      ';font-weight:bold;font-size:12px;vertical-align:top;' + (red ? 'font-weight:bold;' : '') + '\">' +\n      esc(label) + '</td>' +\n    '<td style=\"padding:6px 0;font-size:13px;line-height:1.6;vertical-align:top;' + c + '\">' +\n      (nl2br(value) || '&mdash;') + '</td></tr>';\n}\n\nfunction statCell(value, label, color) {\n  return '<td style=\"border:1px solid ' + LINE + ';padding:10px 20px;text-align:center;\">' +\n    '<div style=\"font-size:20px;font-weight:bold;color:' + color + ';\">' + value + '</div>' +\n    '<div style=\"font-size:11px;color:' + MUTED + ';padding-top:3px;\">' + label + '</div></td>';\n}\n\nlet h = '';\nh += '<div style=\"background:#f1eef7;padding:20px 0;\">';\nh += '<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:760px;margin:0 auto;' +\n     'background:#ffffff;border:1px solid ' + LINE + ';font-family:Arial,Helvetica,sans-serif;color:' + INK + ';\">';\n\n// Header\nh += '<tr><td style=\"background:' + PURPLE + ';padding:22px 26px;\">' +\n     '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>' +\n     '<td style=\"color:#fff;font-size:19px;font-weight:bold;\">ICTD Weekly Status Report</td>' +\n     '<td align=\"right\" style=\"color:#fff;font-size:14px;font-weight:bold;white-space:nowrap;\">' + esc(weekLabel) + '</td>' +\n     '</tr><tr><td colspan=\"2\" style=\"color:#e8dcf7;font-size:11.5px;padding-top:5px;\">' +\n     'Sulaiman Al Rajhi University — Executive Directorate of Communications &amp; Information Technology' +\n     '</td></tr></table></td></tr>';\n\n// Intro + stats\nh += '<tr><td style=\"padding:24px 26px 0;\">';\nh += '<p style=\"margin:0 0 14px;font-size:14px;line-height:1.6;\">Dear Dr. Nasser,</p>';\nh += '<p style=\"margin:0 0 16px;font-size:14px;line-height:1.6;\">Below is the ICTD Weekly Status Report for <b>' +\n     esc(weekLabel) + '</b>, covering <b>' + rows.length + '</b> sector' + (rows.length === 1 ? '' : 's') + '.</p>';\nh += '<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin-bottom:6px;\"><tr>' +\n     statCell(counts.Green, 'On Track', '#14683a') +\n     statCell(counts.Amber, 'At Risk',  '#8a5a00') +\n     statCell(counts.Red,   'Critical', RED) +\n     '</tr></table>';\n\nif (attention.length) {\n  h += '<p style=\"margin:16px 0 6px;font-size:14px;\"><b>Requiring attention:</b></p>';\n  h += '<ul style=\"margin:0 0 4px;padding-left:20px;font-size:13.5px;line-height:1.7;\">';\n  attention.forEach(r => {\n    const rag = RAG[r.status] || {label: r.status, fg: INK};\n    h += '<li><b>' + esc(meta(r.sector).name) + '</b> — <span style=\"color:' + rag.fg +\n         ';font-weight:bold;\">' + esc(rag.label) + '</span></li>';\n  });\n  h += '</ul>';\n}\nh += '</td></tr>';\n\n// Sector cards — built once, reused by the email body and the PDF.\nfunction sectorCards(pad) {\n  let c = '';\n  rows.forEach(d => {\n    const m   = meta(d.sector);\n    const rag = RAG[d.status] || {label: d.status || '\\u2014', bg: '#eeeeee', fg: INK};\n    const dedicated = (d.sector === 'CoffeeIT' || d.sector === 'Events');\n    const risk = hasRisk(d.issues);\n\n    c += '<tr><td style=\"padding:' + pad + ';\">';\n    c += '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:1px solid ' + LINE + ';\">';\n    c += '<tr><td style=\"background:' + m.color + ';padding:10px 14px;color:#fff;font-weight:bold;font-size:14px;\">' +\n         esc(m.name) + '</td>' +\n         '<td align=\"right\" style=\"background:' + m.color + ';padding:10px 14px;white-space:nowrap;\">' +\n         '<span style=\"background:' + rag.bg + ';color:' + rag.fg +\n         ';padding:4px 12px;font-size:11.5px;font-weight:bold;border-radius:3px;\">' + esc(rag.label) + '</span>' +\n         '</td></tr>';\n    c += '<tr><td colspan=\"2\" style=\"padding:12px 14px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">';\n    if (!dedicated) {\n      c += row('Key Activities', d.acts, false);\n      c += row('Issues / Risk',  d.issues, risk);\n      c += row('Support Needed', d.support, false);\n      c += row('Tasks for Next Week', d.next, false);\n    }\n    if (d.sector === 'Events')   c += row('Events Supported', String(countJson(d.events)), false);\n    if (d.sector === 'CoffeeIT') c += row('Sessions Held',    String(countJson(d.sessions)), false);\n    c += row('Attachments', d.attach ? nl2br(d.attach) : '0', false);\n    c += row('Submitted By', d.by, false);\n    c += '</table></td></tr></table></td></tr>';\n  });\n  return c;\n}\n\nh += sectorCards('18px 26px 0');\n\n// CTA + footer\nh += '<tr><td style=\"padding:26px 26px 6px;\" align=\"center\">' +\n     '<a href=\"' + APP_URL + '\" style=\"background:' + PURPLE + ';color:#ffffff;padding:13px 28px;' +\n     'text-decoration:none;font-weight:bold;font-size:14px;display:inline-block;border-radius:4px;\">' +\n     'Open the Weekly Report</a></td></tr>';\nh += '<tr><td align=\"center\" style=\"padding:0 26px 18px;font-size:12px;\">' +\n     '<a href=\"' + APP_URL + '\" style=\"color:' + PURPLE + ';\">' + APP_URL + '</a></td></tr>';\nh += '<tr><td style=\"padding:0 26px 22px;font-size:13.5px;line-height:1.6;\">' +\n     'Best regards,<br>Mohamed ElMahdy, IT Operations Manager, Sulaiman Al Rajhi University</td></tr>';\nh += '<tr><td style=\"border-top:1px solid ' + LINE + ';padding:12px 26px 20px;color:' + MUTED +\n     ';font-size:11px;\">' +\n     (ctx.origin === 'Scheduled'\n        ? 'Sent automatically every Sunday at 08:00 (Asia/Riyadh).'\n        : 'Sent manually from the Compiled Report page.') +\n     '</td></tr>';\nh += '</table></div>';\n\nconst text = 'ICTD Weekly Status Report — ' + weekLabel + '\\n\\n' +\n  rows.length + ' sector(s) reporting: ' + counts.Green + ' On Track, ' +\n  counts.Amber + ' At Risk, ' + counts.Red + ' Critical.\\n\\n' +\n  'Open the Weekly Report: ' + APP_URL + '\\n\\n' +\n  'Mohamed ElMahdy, IT Operations Manager, Sulaiman Al Rajhi University';\n\n/* ----------------------------- PDF ------------------------------- *\n * The same sector cards, wrapped for print instead of for an inbox:\n * no page background, no CTA button, a generated-on line, a footer.\n * Built from sectorCards(), so the attachment and the email body\n * cannot drift apart.                                                 */\n\nconst stamp = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }));\nconst MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\nconst generated = String(stamp.getDate()).padStart(2,'0') + ' ' + MON[stamp.getMonth()] + ' ' +\n                  stamp.getFullYear() + ', ' + String(stamp.getHours()).padStart(2,'0') + ':' +\n                  String(stamp.getMinutes()).padStart(2,'0');\n\nlet p = '';\np += '<html><head><meta charset=\"utf-8\"></head>';\np += '<body style=\"margin:0;font-family:Arial,Helvetica,sans-serif;color:' + INK + ';\">';\np += '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">';\n\np += '<tr><td style=\"background:' + PURPLE + ';padding:20px 26px;\">' +\n     '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>' +\n     '<td style=\"color:#fff;font-size:19px;font-weight:bold;\">ICTD Weekly Status Report</td>' +\n     '<td align=\"right\" style=\"color:#fff;font-size:14px;font-weight:bold;white-space:nowrap;\">' +\n       esc(weekLabel) + '</td></tr>' +\n     '<tr><td style=\"color:#e8dcf7;font-size:11px;padding-top:5px;\">' +\n       'Sulaiman Al Rajhi University \\u2014 Executive Directorate of Communications &amp; Information Technology</td>' +\n     '<td align=\"right\" style=\"color:#e8dcf7;font-size:10px;padding-top:5px;white-space:nowrap;\">Generated ' +\n       esc(generated) + '</td></tr></table></td></tr>';\n\np += '<tr><td style=\"padding:18px 26px 0;\">' +\n     '<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>' +\n     statCell(rows.length, 'Sectors reporting', '#3a1464') +\n     statCell(counts.Green, 'On Track', '#14683a') +\n     statCell(counts.Amber, 'At Risk',  '#8a5a00') +\n     statCell(counts.Red,   'Critical', RED) +\n     '</tr></table></td></tr>';\n\np += sectorCards('18px 26px 0');\n\np += '<tr><td style=\"padding:26px;border-top:1px solid ' + LINE + ';color:' + MUTED +\n     ';font-size:10px;text-align:center;\">ICTD Weekly Status Report \\u00b7 Sulaiman Al Rajhi University<br>' +\n     '<a href=\"' + APP_URL + '\" style=\"color:' + PURPLE + ';\">' + APP_URL + '</a></td></tr>';\np += '</table></body></html>';\n\nreturn [{ json: {\n  skip: false, ok: true,\n  week: weekOf, label: weekLabel, sectors: rows.length,\n  subject: 'ICTD Weekly Status Report \\u2014 ' + weekLabel,\n  filename: 'ICTD Weekly Status Report \\u2014 ' + weekLabel + '.pdf',\n  html: h, text: text, pdfHtml: p, origin: ctx.origin\n}}];\n"
+      },
+      "id": "code-002",
+      "name": "Build Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        -10
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-001",
+      "name": "Has Data?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        620,
+        -10
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "PASTE_APPS_SCRIPT_EXEC_URL_HERE",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ token: '4Gh59SgzSL65T1T1wDGEilCFqydgDZrg', filename: $json.filename, html: $json.pdfHtml }) }}",
+        "options": {
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "http-001",
+      "name": "Render PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        840,
+        -110
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base64",
+        "options": {
+          "fileName": "={{ $('Build Email').item.json.filename }}",
+          "mimeType": "application/pdf"
+        }
+      },
+      "id": "conv-001",
+      "name": "PDF to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        -110
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "nabounar@sr.edu.sa",
+        "subject": "={{ $('Build Email').item.json.subject }}",
+        "message": "={{ $('Build Email').item.json.html }}",
+        "options": {
+          "ccList": "m.elmahdy@sr.edu.sa",
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "data"
+              }
+            ]
+          }
+        }
+      },
+      "id": "gmail-001",
+      "name": "Send to CIO",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1240,
+        -110
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_ME",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "ok",
+              "value": "={{ true }}",
+              "type": "boolean"
+            },
+            {
+              "id": "a2",
+              "name": "week",
+              "value": "={{ $('Build Email').item.json.week }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "label",
+              "value": "={{ $('Build Email').item.json.label }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "sectors",
+              "value": "={{ $('Build Email').item.json.sectors }}",
+              "type": "number"
+            },
+            {
+              "id": "a5",
+              "name": "to",
+              "value": "nabounar@sr.edu.sa",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "cc",
+              "value": "m.elmahdy@sr.edu.sa",
+              "type": "string"
+            },
+            {
+              "id": "a7",
+              "name": "attachment",
+              "value": "={{ $('Build Email').item.json.filename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-001",
+      "name": "Sent",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        -110
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1",
+              "name": "ok",
+              "value": "={{ false }}",
+              "type": "boolean"
+            },
+            {
+              "id": "b2",
+              "name": "error",
+              "value": "={{ $json.error }}",
+              "type": "string"
+            },
+            {
+              "id": "b3",
+              "name": "week",
+              "value": "={{ $json.week }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-002",
+      "name": "Nothing to Send",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        840,
+        110
+      ]
+    }
+  ],
+  "connections": {
+    "Every Sunday 08:00": {
+      "main": [
+        [
+          {
+            "node": "Resolve Week",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Button Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve Week",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Week": {
+      "main": [
+        [
+          {
+            "node": "Get Submissions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Submissions": {
+      "main": [
+        [
+          {
+            "node": "Build Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email": {
+      "main": [
+        [
+          {
+            "node": "Has Data?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Data?": {
+      "main": [
+        [
+          {
+            "node": "Render PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Nothing to Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render PDF": {
+      "main": [
+        [
+          {
+            "node": "PDF to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF to File": {
+      "main": [
+        [
+          {
+            "node": "Send to CIO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to CIO": {
+      "main": [
+        [
+          {
+            "node": "Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Riyadh",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "active": false
+}
