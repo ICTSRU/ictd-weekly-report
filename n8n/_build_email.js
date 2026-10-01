@@ -48,6 +48,42 @@ function hasRisk(text) {
     .some(l => l.replace(/^\s*\d+\s*[.)\-]\s*/, '').trim().length > 0);
 }
 
+/** Full event detail, not just a count — the CIO needs to see what was supported. */
+function renderEvents(raw) {
+  let items = [];
+  try { items = JSON.parse(raw || '[]'); } catch (e) { return ''; }
+  if (!Array.isArray(items) || !items.length) return '';
+  return items.map((ev, i) => {
+    const bits = [];
+    const when = [ev.date, (ev.from || ev.to) ? ((ev.from || '?') + '\u2013' + (ev.to || '?')) : '']
+                 .filter(Boolean).join(' ');
+    if (when)           bits.push(when);
+    if (ev.location)    bits.push(ev.location);
+    if (ev.attendee)    bits.push('Attendees: ' + ev.attendee);
+    if (ev.supportedBy) bits.push('Supported by: ' + ev.supportedBy);
+    let out = '<b>' + (i + 1) + '. ' + (esc(ev.name) || '(untitled event)') + '</b>';
+    if (bits.length)  out += '<br><span style="color:#444;">' + esc(bits.join(' \u00b7 ')) + '</span>';
+    if (ev.comment)   out += '<br><span style="color:#444;"><i>' + esc(ev.comment) + '</i></span>';
+    return out;
+  }).join('<br><br>');
+}
+
+function renderSessions(raw) {
+  let items = [];
+  try { items = JSON.parse(raw || '[]'); } catch (e) { return ''; }
+  if (!Array.isArray(items) || !items.length) return '';
+  return items.map((se, i) => {
+    const bits = [];
+    if (se.date)           bits.push(se.date);
+    if (se.duration)       bits.push(se.duration + ' min');
+    if (se.attendanceType) bits.push(se.attendanceType);
+    if (se.presentedBy)    bits.push('Presented by: ' + se.presentedBy);
+    let out = '<b>' + (i + 1) + '. ' + (esc(se.topic) || '(untitled session)') + '</b>';
+    if (bits.length) out += '<br><span style="color:#444;">' + esc(bits.join(' \u00b7 ')) + '</span>';
+    return out;
+  }).join('<br><br>');
+}
+
 function countJson(s) {
   if (!s) return 0;
   try { const a = JSON.parse(s); return Array.isArray(a) ? a.length : 0; }
@@ -122,6 +158,14 @@ function row(label, value, red) {
       (nl2br(value) || '&mdash;') + '</td></tr>';
 }
 
+/** Same as row(), but the value is already-escaped HTML. */
+function rawRow(label, html) {
+  return '<tr>' +
+    '<td style="width:150px;padding:6px 12px 6px 0;color:' + MUTED +
+      ';font-weight:bold;font-size:12px;vertical-align:top;">' + esc(label) + '</td>' +
+    '<td style="padding:6px 0;font-size:13px;line-height:1.6;vertical-align:top;">' + html + '</td></tr>';
+}
+
 function statCell(value, label, color) {
   return '<td style="border:1px solid ' + LINE + ';padding:10px 20px;text-align:center;">' +
     '<div style="font-size:20px;font-weight:bold;color:' + color + ';">' + value + '</div>' +
@@ -171,7 +215,7 @@ function sectorCards(pad) {
   rows.forEach(d => {
     const m   = meta(d.sector);
     const rag = RAG[d.status] || {label: d.status || '\u2014', bg: '#eeeeee', fg: INK};
-    const dedicated = (d.sector === 'CoffeeIT' || d.sector === 'Events');
+    const dedicated = (d.sector === 'CoffeeIT');   // Events keeps the generic fields
     const risk = hasRisk(d.issues);
 
     c += '<tr><td style="padding:' + pad + ';">';
@@ -189,8 +233,16 @@ function sectorCards(pad) {
       c += row('Support Needed', d.support, false);
       c += row('Tasks for Next Week', d.next, false);
     }
-    if (d.sector === 'Events')   c += row('Events Supported', String(countJson(d.events)), false);
-    if (d.sector === 'CoffeeIT') c += row('Sessions Held',    String(countJson(d.sessions)), false);
+    if (d.sector === 'Events') {
+      c += row('Events Supported', String(countJson(d.events)), false);
+      const evHtml = renderEvents(d.events);
+      if (evHtml) c += rawRow('Events', evHtml);
+    }
+    if (d.sector === 'CoffeeIT') {
+      c += row('Sessions Held', String(countJson(d.sessions)), false);
+      const seHtml = renderSessions(d.sessions);
+      if (seHtml) c += rawRow('Sessions', seHtml);
+    }
     c += row('Attachments', d.attach ? nl2br(d.attach) : '0', false);
     c += row('Submitted By', d.by, false);
     c += '</table></td></tr></table></td></tr>';

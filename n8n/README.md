@@ -1,6 +1,6 @@
 # ICTD Weekly Report — Email to CIO (n8n)
 
-**Workflow version 1.1** · pairs with the Weekly Status Report app **v4.5**
+**Workflow version 1.3** · pairs with the Weekly Status Report app **v4.7**
 Sulaiman Al Rajhi University — ICTD
 
 Emails the full weekly report to the CIO — from a button on the Compiled Report page, and automatically every Sunday at 08:00.

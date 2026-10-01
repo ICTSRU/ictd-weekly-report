@@ -322,7 +322,7 @@ function buildReportHtml_(weekOf, rows) {
   rows.forEach(function (d) {
     var meta = sectorMeta_(d.sector);
     var rag  = RAG[d.status] || {label: d.status || '—', bg: '#eee', fg: INK};
-    var dedicated = (d.sector === 'CoffeeIT' || d.sector === 'Events');
+    var dedicated = (d.sector === 'CoffeeIT');   // Events keeps the generic fields
 
     h += '<div style="margin:22px 26px 0;border:1px solid ' + LINE + ';page-break-inside:avoid;">';
     h += '<table><tr>';

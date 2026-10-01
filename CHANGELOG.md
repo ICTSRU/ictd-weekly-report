@@ -2,6 +2,21 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v4.7
+
+- **Event details now appear, not just a count.** The Event Support card previously showed only "Events Supported: 1"; it now lists each event with its name, date, time, location, attendee count, who supported it, and any comment — on the dashboard, in the compiled report, in the email and in the PDF.
+- The dashboard card reuses the existing `renderEvents()` rather than introducing a second renderer, so the card and the compiled report cannot disagree.
+- **Coffee with IT sessions got the same treatment** in the email and PDF: topic, date, duration, attendance type and presenter, instead of only "Sessions Held: 3".
+- Event and session text is HTML-escaped before rendering, so a stray `<` or a pasted tag in an event name cannot break the email or inject markup.
+- Malformed JSON in the Events or Sessions column degrades to a count of 0 rather than failing the whole send.
+
+## v4.6
+
+- **Event Support now keeps the standard fields.** Key Activities, Issues / Risk, Support Needed and Tasks for Next Week appear for the Events sector in the form, the dashboard, the compiled report, the email and the PDF — alongside the Events Supported count, which is unchanged.
+- This was not a display bug. The form was **hiding the whole generic section for Events and blanking those four values on save**, so an Event Support manager could not record key activities at all, and anything previously entered was wiped on the next submission. Fixed at the source, then in all four renderers.
+- Issues / Risk for Events is flagged bold red like every other sector, which matters — an event week is exactly when something like a failed sound system needs to reach the CIO.
+- **Coffee with IT is unchanged** and stays dedicated-only: Sessions Held, Attachments, Submitted By, with its status still derived from the session count.
+
 ## v4.5
 
 - **The PDF attachment is back**, alongside the inline report. The email now carries both: the full report rendered in the body, and a PDF of the same report attached for filing and forwarding.
