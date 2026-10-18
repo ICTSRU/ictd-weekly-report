@@ -1,125 +1,131 @@
-# ICTD Weekly Status Report
+# ICTD Weekly Status Report — v5.1 (secured)
 
-Internal web app for **Sulaiman Al Rajhi University — Executive Directorate of Communication & Information Technology (ICTD)**.
+Sulaiman Al Rajhi University — Executive Directorate of Communications & Information Technology
 
-Replaces the previous PowerPoint-based weekly report with a structured web form, a live dashboard, and a print-ready report for the CIO.
-
-**Current version: v4.7**
+**Current version: v5.1** · Secure Access Kit v1.4 applied
 
 ---
 
-## ⚠️ Keep this repository PRIVATE
+## What changed in v5.0
 
-`index.html` contains live, unauthenticated n8n webhook URLs. If this repo is public, anyone can:
+The report used to be a static page on GitHub Pages that called four n8n webhooks straight from the browser. Anyone who opened the page could read every sector's report, and anyone who viewed source could read, write or mail without being a university user at all.
 
-- read all submitted weekly reports,
-- write or overwrite rows in the backing Google Sheet,
-- upload arbitrary files into the university Google Drive folder.
+v5.0 moves the app behind a Google sign-in restricted to **@sr.edu.sa** accounts on an allow-list, and moves every server call into Apps Script.
 
-Do not make this repository public without first adding authentication to the n8n endpoints.
+```
+ictsru.github.io/ictd-weekly-report   →   Google sign-in (@sr.edu.sa)   →   Apps Script Web App
+   (branded landing page, no data)         (Google's own page)              (the report; domain + list checked)
+                                                                                      │
+                                                                                      └── UrlFetchApp → n8n → Sheets / Drive / Gmail
+```
+
+| | Before (v4.7) | After (v5.0) |
+|---|---|---|
+| Who can open the report | anyone with the link | @sr.edu.sa, on the `AllowedUsers` list |
+| Webhook URLs | in page source, publicly readable | server-side only, never sent to the browser |
+| Who submitted | whatever the dropdown said | dropdown **plus** the signed-in account, stamped server-side |
+| Sign-in record | none | every sign-in logged to `AccessLog` |
 
 ---
 
-## What it does
+## ⚠️ Rotate the n8n webhook paths
 
-| Tab | Purpose |
+The four webhook URLs sat in a public page for weeks. Removing them from the page does **not** un-publish them — anyone who copied them can still call them, and the GitHub history still holds them.
+
+After this migration works, change the path on each n8n webhook node (for example `ictd-submit` → `ictd-submit-v5`), then update the four `N8N_*` constants in `Code.gs`. Until you do, the old URLs remain usable by anyone who kept them.
+
+---
+
+## Contents
+
+| Path | Purpose |
 |---|---|
-| **Submit Report** | Each sector manager submits their weekly update: status, activities, issues, support needed, next week's tasks, and attachments. |
-| **Dashboard** | An 8-week RAG trend table at the top, then live status across all sectors for a chosen week, plus Coffee with IT attendance KPIs. |
-| **Compiled Report (for CIO)** | All sectors combined into one branded, printable report. Print → Save as PDF. |
-
-### Sectors
-
-- **NOC** — Network Operations Center
-- **SOC** — Security Operations Center
-- **DSSC** — Digital Support and Service Center
-- **AAU** — Applications & Automation Unit
-- **ICTD**
-- **Event Support** — includes per-event entries (name, date, time, location, attendees, supported by, feedback)
-- **Coffee with IT** — includes per-session entries (topic, date, duration, type of attendance, attendance email, presented by)
-- **M. ElMahdy**, **Ammar**, **Nayed**, **Abd Alazez**, **Azzam** — personal sectors using the standard fields
-
-### Submission behaviour
-
-The week is chosen from a dropdown of Sundays only (labelled with ISO week numbers), so every submission lands on a consistent week boundary.
-
-Reports are keyed on **week + sector**. Submitting again for the same week and sector **updates** the existing entry rather than creating a duplicate. Use **Load My Existing Entry** to pull back and edit a previous submission.
-
-After a successful save the form clears itself, so the next person can enter their sector's update on a blank form. The week and sector stay selected.
+| `index.html`, `assets/`, `.nojekyll` | the branded sign-in landing page — this is what GitHub Pages serves |
+| `apps-script/Code.gs` | CONFIG, access check, access log, and the four n8n proxy functions |
+| `apps-script/Index.html` | the report itself (the v4.7 app, with `fetch` replaced by `google.script.run`) |
+| `apps-script/Logos.html` | SRU / ICTD / ITOC logos, used by `Denied.html` |
+| `apps-script/Denied.html` | shown to non-university or non-listed accounts |
+| `n8n/` | the email workflow — unchanged by this migration |
 
 ---
 
-## Architecture
+## Deploy (about 20 minutes)
 
-```
-index.html  (static, no build step)
-     │
-     ├── POST /ictd-submit  ──► n8n ──► Google Sheets (upsert by week + sector)
-     ├── GET  /ictd-data    ──► n8n ──► Google Sheets (read all rows)
-     └── POST /ictd-upload  ──► n8n ──► Google Drive (upload + share) ──► returns link
-```
+### 1. Apps Script
 
-- **Front end:** single self-contained HTML file. No framework, no build, no dependencies to install.
-- **Backend:** n8n workflow `ICTD Weekly Report - API`.
-- **Data store:** Google Sheet `ICTD Weekly Status Report - Data`, tab `Submissions`.
-- **Attachments:** Google Drive folder `ICTD Weekly Report - Attachments`.
+1. Open the sheet **ICTD Weekly Status Report - Data** → **Extensions → Apps Script**
+2. Create four files and paste in the matching contents:
+   - `Code.gs` (replaces the default `Code.gs`)
+   - `Index.html` · `Logos.html` · `Denied.html` (**File → + → HTML**, name them exactly, no `.html` suffix in the name field)
+3. **Save**
+4. Run **`setupAccessList`** once and approve the permission prompt. It creates the `AllowedUsers` tab and seeds the ICTD team.
+5. Run **`testN8nEndpoints`** — it should log `DATA: ok, N rows`. If it fails, the n8n side is wrong, not this.
+6. **Deploy → New deployment → Web app**
+   - Execute as **Me**
+   - Who has access **Anyone within Sulaiman Al Rajhi University**
+7. Copy the **`/exec`** URL
 
-### Sheet columns
+### 2. Landing page
 
-`Timestamp`, `WeekOf`, `Sector`, `Status`, `KeyActivities`, `Issues`, `KPIs` *(unused)*, `SupportNeeded`, `SubmittedBy`, `NextWeekTasks`, `Attachments`, `CoffeeStudent` *(unused)*, `CoffeeStaff` *(unused)*, `CoffeeAdmin` *(unused)*, `Events`, `Sessions`
+1. In the repo, replace the old root `index.html` with the one from this package, and add `assets/` and `.nojekyll`
+2. `CONFIG.WEB_APP_URL` is already set to the live deployment:
+   `https://script.google.com/a/macros/sr.edu.sa/s/AKfycbz…/exec`
+   Only change it if you ever create a *new* deployment rather than a new version.
+3. Commit and let Pages rebuild
 
----
+### 3. Test
 
-## Running it
-
-Open `index.html` in a browser. That's it — it calls the n8n endpoints directly.
-
-To serve it locally over HTTP:
-
-```bash
-python3 -m http.server 8080
-# then open http://localhost:8080
-```
-
----
-
-## Making changes
-
-Everything lives in `index.html` — styles, markup, and logic in one file.
-
-Common edit points:
-
-| To change | Look for |
+| Test | Expected |
 |---|---|
-| Sectors | the `SECTORS` array, and the `<select id="f-sector">` options |
-| Brand colours | the `:root` CSS variables |
-| Backend URLs | `API_BASE` and `UPLOAD_URL` |
-| List of people in the Submitted By / Presented By dropdowns | `TEAM_NAMES` |
-| Attachment size cap | `MAX_ATTACH_MB` (currently 10) |
+| Your own account | the report opens |
+| Incognito | Google sign-in, then the report |
+| A personal Gmail | the "university accounts only" page |
+| An @sr.edu.sa account not on the list | the "الوصول مقيّد" page, with their e-mail |
+| The sheet | a new row in `AccessLog` for each of the above |
 
-### Versioning
-
-Every change must bump the version in **three** places in `index.html`:
-
-1. `<title>` — `ICTD Weekly Status Report — vX.Y`
-2. the header badge — `<span class="version-badge">vX.Y</span>`
-3. the page footer — `Version X.Y · Sulaiman Al Rajhi University`
-
-Version numbers use a single digit after the decimal point: v2.7 → v2.8 → v2.9 → **v3.0**. There is no v2.10.
-
-- **Minor** (v3.1, v3.2 …) — styling, new fields, small fixes
-- **Major** (v4.0) — structural change: new backend, new module, reworked data model, or the step up from x.9
-
-Record what changed in `CHANGELOG.md`.
+Then submit one sector and press **Email Report to CIO** to confirm the proxied calls work end to end.
 
 ---
 
-## Known limits
+## Access list
 
-- Attachments are capped at **10 MB** (base64 through the n8n webhook).
-- Uploaded attachments are shared as **anyone with the link can view**, so the CIO can open them without individual permission grants. Tighten this if data governance requires it.
-- The `KPIs` sheet column is retained for historical data but is no longer collected in the form.
-- The n8n endpoints have **no authentication**. Anyone with the URLs can read and write data.
+The `AllowedUsers` tab decides who gets in: `email · name · role · active · notes`.
+
+- Add a row to grant access, untick **active** to suspend, delete the row to remove. Changes apply within two minutes.
+- `OWNER_EMAILS` (`m.elmahdy@sr.edu.sa`) is always allowed, so you cannot lock yourself out.
+- The list is seeded with the full 13-account ICTD team. The weekly report is filled by every sector manager and read by the CIO, so it was left wide rather than guessed narrow — trim `DEFAULT_ALLOWED` in `Code.gs` and remove the rows if you want it tighter.
+- To drop the list entirely and allow any university account, set `ACCESS_MODE = 'DOMAIN'`.
+
+---
+
+## Access log
+
+`AccessLog` records `timestamp · date · time · day · email · result · version`. Same user within 30 minutes counts once. Denied attempts are logged too — `مرفوض` for a non-university account, `غير مدرج` for one not on the list.
+
+The sheet menu **ICTD Weekly Status Report** has a 30-day summary and a purge for entries older than 180 days.
+
+**Keep this spreadsheet private.** It now holds staff e-mail addresses as well as the reports.
+
+---
+
+## Updating later
+
+| To change | Do |
+|---|---|
+| The report UI | edit `Index.html`, then **Deploy → Manage deployments → ✏️ → Version: New version** (the URL stays the same) |
+| Who can get in | edit the `AllowedUsers` tab — no redeploy |
+| An n8n endpoint | edit the `N8N_*` constants in `Code.gs`, then redeploy |
+
+A new deployment (rather than a new version) issues a **new URL** and would break the landing page link. Always use *Manage deployments → edit → New version*.
+
+---
+
+## Notes and limits
+
+- **Execute as Me** lets the page read the sheet without sharing it with every user. The trade-off is that all n8n calls are made as you, so the `AccessLog` and the server-side `savedBy` stamp are what identify the actual user.
+- Attachments are capped at **10 MB**, now passed through `google.script.run` as base64. Large files are slower than before, since they travel browser → Apps Script → n8n rather than straight to n8n.
+- `Index.html` is a single file of about 165 KB, served by the Apps Script HTML service inside a sandboxed iframe. Browser storage APIs are unavailable there — the app does not use any.
+- One `onOpen` per Apps Script project. If you later add the PDF mailer to this same project, merge its menu items into the `onOpen` in `Code.gs` instead of declaring a second one.
 
 ---
 

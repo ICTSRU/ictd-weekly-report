@@ -2,6 +2,26 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v5.1
+
+- Hardcoded the live Apps Script web app URL into the landing page's `CONFIG.WEB_APP_URL`, so the sign-in button and the "skip this screen" shortcut both work with no further editing.
+- Version lifted to 5.1 across the landing page, `Index.html` and `APP_VERSION` in `Code.gs`, so the page, the access log and the landing page all report the same number.
+
+## v5.0 — secured access
+
+Major: the report now runs as an Apps Script web app behind a university Google sign-in. SRU Secure Access Kit v1.4 applied.
+
+- **Access is restricted to @sr.edu.sa accounts** on an `AllowedUsers` list, enforced by the Apps Script deployment ("Anyone within Sulaiman Al Rajhi University") plus a server-side domain check. Non-university and non-listed accounts get the branded refusal page.
+- **Every sign-in is logged** to the `AccessLog` tab — e-mail, date, time, Arabic day, result — with 30-minute de-duplication and a 180-day purge.
+- **All four n8n webhook URLs left the browser.** They used to sit in page source on a public GitHub Pages site, so anyone who viewed source could read every report, overwrite sheet rows, upload into the university Drive folder, or mail the CIO. They now live in `Code.gs` and are called with `UrlFetchApp` behind `requireSruUser_()`: `apiGetData`, `apiSubmit`, `apiUpload`, `apiSendEmail`.
+- The page's four `fetch()` calls became `google.script.run` calls through one `gsCall()` promise bridge. Opening the file outside the web app now gives a clear message instead of a silent failure.
+- **Submissions are stamped with the signed-in account** (`savedBy`) server-side, independent of the form's "Submitted By" dropdown.
+- The dashboard's first paint uses rows rendered into the page by `doGet`, so there is no round trip on load; a failure there falls back to a normal `apiGetData` call.
+- The header shows the signed-in university account; hidden in print.
+- GitHub Pages now serves the **branded ITOC sign-in landing page** instead of the app. It holds no data and no internal URLs.
+
+**Still to do after deploying:** rotate the four n8n webhook paths. The old URLs were public for weeks and remain callable by anyone who copied them — removing them from the page does not revoke them.
+
 ## v4.7
 
 - **Event details now appear, not just a count.** The Event Support card previously showed only "Events Supported: 1"; it now lists each event with its name, date, time, location, attendee count, who supported it, and any comment — on the dashboard, in the compiled report, in the email and in the PDF.
