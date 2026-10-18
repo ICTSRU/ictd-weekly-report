@@ -2,6 +2,13 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v5.4
+
+- Added **Atef Elnadi** to the shared people list, so he appears in **Submitted By**, **Presented By** (Coffee with IT) and **Supported By** (Event Support). Inserted in alphabetical order.
+- This resolved the open question from v5.2: the access matrix gave NOC and SOC to `n.nawaz` **and "Atef"**, and that name now matches `a.elnadi@sr.edu.sa`, already in the allow-list. Both sectors' default owners are now `n.nawaz@sr.edu.sa, a.elnadi@sr.edu.sa`, and his `AllowedUsers` row is labelled "Atef Elnadi — NOC / SOC".
+
+**If you have already run `setupSectorOwners`,** the new default will not apply: the function never overwrites existing rows. Add `a.elnadi@sr.edu.sa` to the `owners` cell for NOC and SOC in the `SectorOwners` tab by hand.
+
 ## v5.3
 
 - **Fixed: every server call was failing.** `gsCall()` invoked the method as `runner[fn].apply(null, args)`. `google.script.run` returns a runner object whose generated methods need `this` to be that runner, so a detached `this` throws — submit, load, upload and the CIO email were all broken in the deployed app. The runner is now kept in a variable and the method called on it. The test mock had ignored `this`, which is why this passed locally; the mock now rejects a detached call, and reproducing v5.2 against it shows the throw.

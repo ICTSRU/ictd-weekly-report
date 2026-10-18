@@ -1,8 +1,8 @@
-# ICTD Weekly Status Report — v5.3 (secured)
+# ICTD Weekly Status Report — v5.4 (secured)
 
 Sulaiman Al Rajhi University — Executive Directorate of Communications & Information Technology
 
-**Current version: v5.3** · Secure Access Kit v1.4 applied
+**Current version: v5.4** · Secure Access Kit v1.4 applied
 
 ---
 
@@ -105,7 +105,7 @@ Signing in lets you **read** every sector. **Saving** is limited by the `SectorO
 
 | Sector | May save |
 |---|---|
-| NOC · SOC | `n.nawaz@sr.edu.sa` *(+ Atef — see below)* |
+| NOC · SOC | `n.nawaz@sr.edu.sa`, `a.elnadi@sr.edu.sa` |
 | DSSC | `m.omar@sr.edu.sa` |
 | AAU | `m.saleh@sr.edu.sa` |
 | ICTD · Event Support · Coffee with IT | `ALL` — any allow-listed user |
@@ -117,17 +117,15 @@ Signing in lets you **read** every sector. **Saving** is limited by the `SectorO
 - Enforcement is **server-side** in `apiSubmit`. The disabled Save button is a courtesy, not the control.
 - A missing or empty tab falls back to the matrix in `Code.gs`, so a fresh install is enforced rather than open.
 
-### ⚠️ Add Atef's e-mail
+### If you already ran `setupSectorOwners`
 
-The matrix gives NOC and SOC to `n.nawaz` **and "Atef"**. No address in the ICTD list clearly matches that name, so rather than guess and hand someone edit rights by accident, both rows were seeded with `n.nawaz@sr.edu.sa` only.
-
-Open `SectorOwners`, and in the `owners` cell for **NOC** and **SOC** make it:
+`setupSectorOwners()` never overwrites an existing row, so the NOC and SOC owners added in v5.4 (`a.elnadi@sr.edu.sa` — Atef Elnadi) will not appear in a tab that already exists. Open `SectorOwners` and make the `owners` cell for **NOC** and **SOC**:
 
 ```
-n.nawaz@sr.edu.sa, atef.actual.address@sr.edu.sa
+n.nawaz@sr.edu.sa, a.elnadi@sr.edu.sa
 ```
 
-Until then, Atef can read those sectors but not save them.
+No redeploy needed; the change applies within two minutes.
 
 ---
 

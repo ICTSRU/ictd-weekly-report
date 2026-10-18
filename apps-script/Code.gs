@@ -25,7 +25,7 @@
 /* ▼▼▼ CONFIG — change per platform ▼▼▼ */
 const APP_NAME       = 'التقرير الأسبوعي لحالة تقنية المعلومات';
 const APP_NAME_EN    = 'ICTD Weekly Status Report';
-const APP_VERSION    = '5.3';
+const APP_VERSION    = '5.4';
 const ALLOWED_DOMAIN = 'sr.edu.sa';
 const FAVICON_URL    = 'https://ictsru.github.io/ITOC/assets/itoc-logo.png';
 
@@ -71,7 +71,7 @@ const DEFAULT_ALLOWED = [
   ['a.alolayan@sr.edu.sa',  '',                'user',  ''],
   ['s.albusayli@sr.edu.sa', '',                'user',  ''],
   ['i.almutairi@sr.edu.sa', '',                'user',  ''],
-  ['a.elnadi@sr.edu.sa',    '',                'user',  '']
+  ['a.elnadi@sr.edu.sa',    'Atef Elnadi',     'user',  'NOC / SOC']
 ];
 const ACCESS_CACHE_SECONDS = 120;
 
@@ -90,8 +90,8 @@ const SHEET_OWNERS = 'SectorOwners';
 const SECTOR_SUPER_EDITORS = ['m.elmahdy@sr.edu.sa'];
 const DEFAULT_SECTOR_OWNERS = [
   // [sector code, label, owners ('ALL' or e-mails separated by commas), notes]
-  ['NOC',       'NOC',             'n.nawaz@sr.edu.sa',     'matrix: n.nawaz + Atef — add Atef\'s e-mail here'],
-  ['SOC',       'SOC',             'n.nawaz@sr.edu.sa',     'matrix: n.nawaz + Atef — add Atef\'s e-mail here'],
+  ['NOC',       'NOC',             'n.nawaz@sr.edu.sa, a.elnadi@sr.edu.sa', 'matrix: n.nawaz + Atef Elnadi'],
+  ['SOC',       'SOC',             'n.nawaz@sr.edu.sa, a.elnadi@sr.edu.sa', 'matrix: n.nawaz + Atef Elnadi'],
   ['DSSC',      'DSSC',            'm.omar@sr.edu.sa',      'matrix: m.omar'],
   ['AAU',       'AAU',             'm.saleh@sr.edu.sa',     'matrix: m.saleh'],
   ['ICTD',      'ICTD',            'ALL',                   'matrix: All'],
