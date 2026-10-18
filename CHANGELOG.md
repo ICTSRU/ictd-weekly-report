@@ -2,6 +2,18 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v5.2 — sector ownership
+
+Applies `Access_weekely_report_matrix.xlsx`, so two managers can no longer overwrite each other's row.
+
+- **Saving is now limited to a sector's owner.** Everyone who can sign in still reads every sector; only the owner (or Mohamed ElMahdy, the matrix's "Or by Mahdy" column) can submit a given one.
+- Enforced **server-side in `apiSubmit`**, which is the real guard — `google.script.run` is reachable without the page. The form also disables Save and shows a read-only notice naming the sector, but that is only UX.
+- Ownership lives in a new **`SectorOwners`** sheet tab (`sector · label · owners · notes`), seeded from the matrix by `setupSectorOwners()`. Owners can be changed there without a redeploy; `ALL` means any allow-listed user. Changes apply within two minutes.
+- If the tab is missing or empty the code falls back to the matrix baked into `Code.gs`, so a fresh install is enforced rather than silently open. An unknown sector code is refused, never defaulted open.
+- `apiEditableSectors()` tells the page what the signed-in user may save; the list is also rendered into the page at load.
+
+**One cell needs completing.** The matrix gives NOC and SOC to `n.nawaz` **and "Atef"**, and no address in the ICTD list clearly matches that name. Rather than guess an address and hand someone edit rights by accident, both sectors are seeded with `n.nawaz@sr.edu.sa` only and a note in the `notes` column. Add Atef's e-mail to the `owners` cell for NOC and SOC — comma-separated, no redeploy needed.
+
 ## v5.1
 
 - Hardcoded the live Apps Script web app URL into the landing page's `CONFIG.WEB_APP_URL`, so the sign-in button and the "skip this screen" shortcut both work with no further editing.

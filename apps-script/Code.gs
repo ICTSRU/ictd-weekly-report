@@ -25,7 +25,7 @@
 /* ▼▼▼ CONFIG — change per platform ▼▼▼ */
 const APP_NAME       = 'التقرير الأسبوعي لحالة تقنية المعلومات';
 const APP_NAME_EN    = 'ICTD Weekly Status Report';
-const APP_VERSION    = '5.1';
+const APP_VERSION    = '5.2';
 const ALLOWED_DOMAIN = 'sr.edu.sa';
 const FAVICON_URL    = 'https://ictsru.github.io/ITOC/assets/itoc-logo.png';
 
@@ -74,6 +74,36 @@ const DEFAULT_ALLOWED = [
   ['a.elnadi@sr.edu.sa',    '',                'user',  '']
 ];
 const ACCESS_CACHE_SECONDS = 120;
+
+/* ---------------- Sector ownership (who may SAVE what) ---------------
+ * From Access_weekely_report_matrix.xlsx. Being on AllowedUsers lets you
+ * OPEN the report and read everything; this decides who may overwrite a
+ * given sector's row, so two managers can no longer clobber each other.
+ *
+ * 'ALL'  = any allow-listed user may save that sector.
+ * SECTOR_SUPER_EDITORS may save every sector (the matrix's "Or by Mahdy").
+ *
+ * Seeded into the SectorOwners tab by setupSectorOwners(); after that the
+ * TAB is the source of truth and this array is only used to re-seed.
+ */
+const SHEET_OWNERS = 'SectorOwners';
+const SECTOR_SUPER_EDITORS = ['m.elmahdy@sr.edu.sa'];
+const DEFAULT_SECTOR_OWNERS = [
+  // [sector code, label, owners ('ALL' or e-mails separated by commas), notes]
+  ['NOC',       'NOC',             'n.nawaz@sr.edu.sa',     'matrix: n.nawaz + Atef — add Atef\'s e-mail here'],
+  ['SOC',       'SOC',             'n.nawaz@sr.edu.sa',     'matrix: n.nawaz + Atef — add Atef\'s e-mail here'],
+  ['DSSC',      'DSSC',            'm.omar@sr.edu.sa',      'matrix: m.omar'],
+  ['AAU',       'AAU',             'm.saleh@sr.edu.sa',     'matrix: m.saleh'],
+  ['ICTD',      'ICTD',            'ALL',                   'matrix: All'],
+  ['Events',    'Event Support',   'ALL',                   'matrix: All'],
+  ['CoffeeIT',  'Coffee with IT',  'ALL',                   'matrix: All'],
+  ['MElMahdy',  'M. ElMahdy',      'm.elmahdy@sr.edu.sa',   'matrix: mahdy'],
+  ['Ammar',     'Ammar',           'a.alrowedan@sr.edu.sa', 'matrix: Ammar'],
+  ['Nayed',     'Nayed',           'n.alrashidi@sr.edu.sa', 'matrix: Nayed'],
+  ['AbdAlazez', 'Abd Alazez',      'a.alawaji@sr.edu.sa',   'matrix: Abd Alazez'],
+  ['Azzam',     'Azzam',           'a.alaqeel@sr.edu.sa',   'matrix: Azzam']
+];
+const OWNERS_HEADERS = ['sector', 'label', 'owners', 'notes'];
 /* ▲▲▲ CONFIG ▲▲▲ */
 
 const LOG_HEADERS = ['timestamp', 'date', 'time', 'day', 'email', 'result', 'version'];
@@ -114,10 +144,14 @@ function doGet() {
  */
 function getInitialData_() {
   try {
-    return { rows: n8nGet_(N8N_DATA), loadedAt: new Date().toISOString() };
+    return {
+      rows: n8nGet_(N8N_DATA),
+      editable: editableSectors_(currentEmail_()),
+      loadedAt: new Date().toISOString()
+    };
   } catch (e) {
     console.error('getInitialData_ failed: ' + e);
-    return { rows: [], error: String(e && e.message || e) };
+    return { rows: [], editable: editableSectors_(currentEmail_()), error: String(e && e.message || e) };
   }
 }
 
@@ -135,6 +169,14 @@ function apiGetData() {
 function apiSubmit(payload) {
   const email = requireSruUser_();
   if (!payload || typeof payload !== 'object') throw new Error('Invalid payload');
+
+  // Ownership check — the real guard. The page also hides the Save button,
+  // but google.script.run is reachable without the page.
+  const sector = String(payload.sector || '');
+  if (!canEditSector_(email, sector)) {
+    throw new Error('لا تملك صلاحية حفظ هذا القطاع — You are not an owner of "' +
+                    sectorLabel_(sector) + '". Ask its owner, or Mohamed ElMahdy, to save it.');
+  }
   // Stamp the signed-in account so the sheet records who actually saved it,
   // independent of whatever the form's "Submitted By" dropdown says.
   payload.savedBy = email;
@@ -153,6 +195,11 @@ function apiUpload(file) {
   const url = out && (out.url || (Array.isArray(out) && out[0] && out[0].url));
   if (!url) throw new Error('Upload succeeded but no link was returned');
   return { url: url };
+}
+
+/** Which sectors the signed-in user may save. */
+function apiEditableSectors() {
+  return editableSectors_(requireSruUser_());
 }
 
 /** Email the compiled report for one week to the CIO. */
@@ -284,6 +331,101 @@ function setupAccessList() {
   try { SpreadsheetApp.getActive().toast('قائمة المصرّح لهم جاهزة: ' + kept.length + ' بريدًا (أُضيف ' + added + ').', SHEET_ACCESS, 8); } catch (e) {}
 }
 
+/* ------------------------- Sector ownership ------------------------- */
+
+/** {sectorCode: ['ALL'] | ['a@x','b@x']} from the SectorOwners tab. */
+function sectorOwners_() {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get('owners_v1');
+  if (hit) return JSON.parse(hit);
+
+  let map = {};
+  try {
+    const sh = ownersSheet_(false);
+    if (sh && sh.getLastRow() > 1) {
+      sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues().forEach(r => {
+        const code = String(r[0] || '').trim();
+        if (!code) return;
+        const raw = String(r[2] || '').trim();
+        map[code] = raw.toUpperCase() === 'ALL'
+          ? ['ALL']
+          : raw.split(/[,;\s]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
+      });
+    }
+  } catch (e) { console.error('sectorOwners_ failed: ' + e); }
+
+  // Tab missing or empty: fall back to the matrix so a fresh install is
+  // still enforced rather than silently open.
+  if (!Object.keys(map).length) {
+    DEFAULT_SECTOR_OWNERS.forEach(r => {
+      map[r[0]] = String(r[2]).toUpperCase() === 'ALL'
+        ? ['ALL']
+        : String(r[2]).split(/[,;\s]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
+    });
+  }
+  cache.put('owners_v1', JSON.stringify(map), ACCESS_CACHE_SECONDS);
+  return map;
+}
+
+function canEditSector_(email, sector) {
+  if (!email || !sector) return false;
+  email = email.toLowerCase();
+  if (SECTOR_SUPER_EDITORS.map(e => e.toLowerCase()).indexOf(email) !== -1) return true;
+  const owners = sectorOwners_()[sector];
+  if (!owners) return false;              // unknown sector: refuse, never default open
+  if (owners.indexOf('ALL') !== -1) return true;
+  return owners.indexOf(email) !== -1;
+}
+
+function editableSectors_(email) {
+  const map = sectorOwners_();
+  return Object.keys(map).filter(code => canEditSector_(email, code));
+}
+
+function sectorLabel_(code) {
+  for (let i = 0; i < DEFAULT_SECTOR_OWNERS.length; i++) {
+    if (DEFAULT_SECTOR_OWNERS[i][0] === code) return DEFAULT_SECTOR_OWNERS[i][1];
+  }
+  return code || '(unknown)';
+}
+
+function ownersSheet_(create) {
+  const ss = ACCESS_SPREADSHEET_ID ? SpreadsheetApp.openById(ACCESS_SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(SHEET_OWNERS);
+  if (!sh && create) {
+    sh = ss.insertSheet(SHEET_OWNERS);
+    sh.getRange(1, 1, 1, OWNERS_HEADERS.length).setValues([OWNERS_HEADERS])
+      .setFontWeight('bold').setFontColor('#ffffff').setBackground('#0a6eaa');
+    sh.setFrozenRows(1);
+    [140, 180, 420, 320].forEach((w, i) => sh.setColumnWidth(i + 1, w));
+    sh.getRange('A1').setNote('رمز القطاع كما في التطبيق — must match the app\'s sector code exactly');
+    sh.getRange('C1').setNote('ALL أو قائمة بريد مفصولة بفواصل — ALL, or e-mails separated by commas');
+  }
+  return sh;
+}
+
+/** Run once: creates SectorOwners and seeds it from the access matrix. */
+function setupSectorOwners() {
+  const sh = ownersSheet_(true);
+  const n = Math.max(sh.getLastRow() - 1, 0);
+  const existing = n ? sh.getRange(2, 1, n, 4).getValues().filter(r => String(r[0]).trim()) : [];
+  const have = existing.map(r => String(r[0]).trim());
+
+  let added = 0;
+  DEFAULT_SECTOR_OWNERS.forEach(r => {
+    if (have.indexOf(r[0]) === -1) { existing.push(r.slice()); have.push(r[0]); added++; }
+  });
+
+  if (n) sh.getRange(2, 1, n, 4).clearContent();
+  if (existing.length) sh.getRange(2, 1, existing.length, 4).setValues(existing);
+
+  CacheService.getScriptCache().remove('owners_v1');
+  console.log('SectorOwners ready: ' + existing.length + ' sectors (' + added + ' added).');
+  try {
+    SpreadsheetApp.getActive().toast('مصفوفة الصلاحيات جاهزة: ' + existing.length + ' قطاعًا (أُضيف ' + added + ').', SHEET_OWNERS, 8);
+  } catch (e) {}
+}
+
 /* ---------------------------- Access log ---------------------------- */
 
 function logAccess_(email, result) {
@@ -360,6 +502,7 @@ function onOpen() {
   try {
     SpreadsheetApp.getUi().createMenu(APP_NAME_EN)
       .addItem('إعداد قائمة المصرّح لهم (AllowedUsers)', 'setupAccessList')
+      .addItem('إعداد مصفوفة صلاحيات القطاعات (SectorOwners)', 'setupSectorOwners')
       .addSeparator()
       .addItem('ملخص سجل الدخول (30 يومًا)', 'showLogSummary')
       .addItem('حذف سجلات الدخول القديمة', 'purgeOldLogs')

@@ -1,8 +1,8 @@
-# ICTD Weekly Status Report — v5.1 (secured)
+# ICTD Weekly Status Report — v5.2 (secured)
 
 Sulaiman Al Rajhi University — Executive Directorate of Communications & Information Technology
 
-**Current version: v5.1** · Secure Access Kit v1.4 applied
+**Current version: v5.2** · Secure Access Kit v1.4 applied
 
 ---
 
@@ -59,11 +59,12 @@ After this migration works, change the path on each n8n webhook node (for exampl
    - `Index.html` · `Logos.html` · `Denied.html` (**File → + → HTML**, name them exactly, no `.html` suffix in the name field)
 3. **Save**
 4. Run **`setupAccessList`** once and approve the permission prompt. It creates the `AllowedUsers` tab and seeds the ICTD team.
-5. Run **`testN8nEndpoints`** — it should log `DATA: ok, N rows`. If it fails, the n8n side is wrong, not this.
-6. **Deploy → New deployment → Web app**
+5. Run **`setupSectorOwners`** once. It creates the `SectorOwners` tab from the access matrix — who may *save* each sector.
+6. Run **`testN8nEndpoints`** — it should log `DATA: ok, N rows`. If it fails, the n8n side is wrong, not this.
+7. **Deploy → New deployment → Web app**
    - Execute as **Me**
    - Who has access **Anyone within Sulaiman Al Rajhi University**
-7. Copy the **`/exec`** URL
+8. Copy the **`/exec`** URL
 
 ### 2. Landing page
 
@@ -95,6 +96,38 @@ The `AllowedUsers` tab decides who gets in: `email · name · role · active · 
 - `OWNER_EMAILS` (`m.elmahdy@sr.edu.sa`) is always allowed, so you cannot lock yourself out.
 - The list is seeded with the full 13-account ICTD team. The weekly report is filled by every sector manager and read by the CIO, so it was left wide rather than guessed narrow — trim `DEFAULT_ALLOWED` in `Code.gs` and remove the rows if you want it tighter.
 - To drop the list entirely and allow any university account, set `ACCESS_MODE = 'DOMAIN'`.
+
+---
+
+## Sector ownership — who may save what
+
+Signing in lets you **read** every sector. **Saving** is limited by the `SectorOwners` tab, from `Access_weekely_report_matrix.xlsx`:
+
+| Sector | May save |
+|---|---|
+| NOC · SOC | `n.nawaz@sr.edu.sa` *(+ Atef — see below)* |
+| DSSC | `m.omar@sr.edu.sa` |
+| AAU | `m.saleh@sr.edu.sa` |
+| ICTD · Event Support · Coffee with IT | `ALL` — any allow-listed user |
+| M. ElMahdy / Ammar / Nayed / Abd Alazez / Azzam | that person only |
+
+`m.elmahdy@sr.edu.sa` can save every sector (`SECTOR_SUPER_EDITORS`).
+
+- Edit the `owners` cell to change ownership — `ALL`, or e-mails separated by commas. No redeploy; changes apply within two minutes.
+- Enforcement is **server-side** in `apiSubmit`. The disabled Save button is a courtesy, not the control.
+- A missing or empty tab falls back to the matrix in `Code.gs`, so a fresh install is enforced rather than open.
+
+### ⚠️ Add Atef's e-mail
+
+The matrix gives NOC and SOC to `n.nawaz` **and "Atef"**. No address in the ICTD list clearly matches that name, so rather than guess and hand someone edit rights by accident, both rows were seeded with `n.nawaz@sr.edu.sa` only.
+
+Open `SectorOwners`, and in the `owners` cell for **NOC** and **SOC** make it:
+
+```
+n.nawaz@sr.edu.sa, atef.actual.address@sr.edu.sa
+```
+
+Until then, Atef can read those sectors but not save them.
 
 ---
 
