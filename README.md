@@ -1,8 +1,8 @@
-# ICTD Weekly Status Report — v5.2 (secured)
+# ICTD Weekly Status Report — v5.3 (secured)
 
 Sulaiman Al Rajhi University — Executive Directorate of Communications & Information Technology
 
-**Current version: v5.2** · Secure Access Kit v1.4 applied
+**Current version: v5.3** · Secure Access Kit v1.4 applied
 
 ---
 

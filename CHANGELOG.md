@@ -2,6 +2,14 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v5.3
+
+- **Fixed: every server call was failing.** `gsCall()` invoked the method as `runner[fn].apply(null, args)`. `google.script.run` returns a runner object whose generated methods need `this` to be that runner, so a detached `this` throws — submit, load, upload and the CIO email were all broken in the deployed app. The runner is now kept in a variable and the method called on it. The test mock had ignored `this`, which is why this passed locally; the mock now rejects a detached call, and reproducing v5.2 against it shows the throw.
+- `gsCall()` also reports a clear error if a server function is missing, which is what a stale deployment looks like.
+- Hardened the **Submitted By** list: one `populateSubmittedBy()` helper used by all three call sites, idempotent, wrapped in try/catch, and re-run on `window.load` so an earlier failure cannot leave it empty.
+- Pinned `color-scheme: light` and gave `select` / `option` explicit colours. Native dropdown popups are drawn by the OS, so in a dark-mode browser they paint dark while the option text stayed dark — which reads as an empty black strip.
+- Guarded `applySectorPermission()` so it can never interrupt form setup.
+
 ## v5.2 — sector ownership
 
 Applies `Access_weekely_report_matrix.xlsx`, so two managers can no longer overwrite each other's row.
