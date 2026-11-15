@@ -4,7 +4,7 @@
 <meta name="version" content="<?= version ?>">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ICTD Weekly Status Report — v5.9</title>
+<title>ICTD Weekly Status Report — v6.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -554,6 +554,52 @@
   }
 
   /* ============================================================
+     v6.0 — Access & Permissions panel (admins only)
+     ============================================================ */
+  .admin-head{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:6px;}
+  .admin-head h2{margin:0;}
+  .admin-sub{font-size:11.5px; font-weight:700; color:var(--muted); letter-spacing:.01em; margin-inline-start:4px;}
+  .role-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin:18px 0 22px;}
+  .role-card{border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px; background:#fbfaff;}
+  .role-card p{margin:8px 0 0; font-size:12.5px; line-height:1.7; color:var(--muted); font-weight:600;}
+  .role-card.role-admin{border-top:3px solid var(--red);}
+  .role-card.role-editor{border-top:3px solid var(--blue);}
+  .role-card.role-viewer{border-top:3px solid var(--muted);}
+  .role-badge{display:inline-block; font-size:11.5px; font-weight:800; padding:4px 11px; border-radius:20px; letter-spacing:.01em;}
+  .badge-admin{background:#fdecec; color:var(--red);}
+  .badge-editor{background:var(--blue-light); color:var(--blue);}
+  .badge-viewer{background:#eee9f5; color:var(--muted);}
+
+  .admin-addbox{border:1.5px dashed var(--border); border-radius:var(--radius-sm); padding:16px; margin-bottom:20px; background:#fbfaff;}
+  .addbox-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px;}
+  .addbox-actions{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:14px;}
+  .addbox-note{font-size:11.5px; color:var(--muted); font-weight:600;}
+
+  .admin-users-wrap{overflow-x:auto; border-radius:var(--radius-sm);}
+  table.admin-users{border-collapse:collapse; width:100%; font-size:12.8px; min-width:620px;}
+  table.admin-users th, table.admin-users td{border-bottom:1px solid var(--border); padding:11px 12px; text-align:start; vertical-align:middle;}
+  table.admin-users th{font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); font-weight:900; background:var(--purple-light);}
+  table.admin-users td .u-email{font-weight:800; color:var(--ink); direction:ltr; unicode-bidi:plaintext;}
+  table.admin-users td .u-name{font-size:11.5px; color:var(--muted); font-weight:600;}
+  .tier-pill{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:20px; white-space:nowrap;}
+  .tier-admin{background:#fdecec; color:var(--red);}
+  .tier-editor{background:var(--blue-light); color:var(--blue);}
+  .tier-viewer{background:#eee9f5; color:var(--muted);}
+  .sector-chips{display:flex; flex-wrap:wrap; gap:5px; max-width:320px;}
+  .sector-chip{font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; background:var(--purple-light); color:var(--purple); cursor:pointer; border:1px solid transparent; user-select:none;}
+  .sector-chip.on{background:var(--purple); color:#fff;}
+  .sector-chip.all{background:var(--blue-light); color:var(--blue); cursor:default;}
+  .u-actions{display:flex; gap:7px; flex-wrap:wrap;}
+  .mini-btn{font-family:inherit; font-size:11px; font-weight:700; padding:5px 10px; border-radius:14px; border:1.5px solid var(--border); background:#fff; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all .15s;}
+  .mini-btn:hover{border-color:var(--purple); color:var(--purple);}
+  .mini-btn.on{background:var(--green); border-color:var(--green); color:#fff;}
+  .mini-btn.off{background:#f0f0f0; border-color:var(--border); color:var(--muted);}
+  .admin-loading{display:flex; align-items:center; gap:9px; color:var(--muted); font-size:13px; font-weight:700; padding:22px 0;}
+  .admin-loading svg{animation:spin 1s linear infinite;}
+  .admin-err{color:var(--red); font-weight:700; font-size:12.5px; padding:14px 0;}
+  @media (max-width:640px){ .admin-head{flex-direction:column; align-items:flex-start;} }
+
+  /* ============================================================
      v5.9 — NIGHT MODE
      Scoped to :root[data-theme="dark"] (the attribute sits on <html>)
      so every rule out-specifies both the page defaults AND the external
@@ -642,6 +688,21 @@
   :root[data-theme="dark"] .event-row .btn-remove:hover{background:rgba(239,91,96,.18);}
   /* the white "For Support" chip stays white on the dark footer by design */
 
+  /* v6.0 — permissions panel in dark */
+  :root[data-theme="dark"] .role-card,
+  :root[data-theme="dark"] .admin-addbox{background:#211a33; border-color:var(--border);}
+  :root[data-theme="dark"] .badge-admin,
+  :root[data-theme="dark"] .tier-admin{background:rgba(239,91,96,.16); color:var(--red);}
+  :root[data-theme="dark"] .badge-editor,
+  :root[data-theme="dark"] .tier-editor{background:var(--blue-light); color:var(--blue);}
+  :root[data-theme="dark"] .badge-viewer,
+  :root[data-theme="dark"] .tier-viewer{background:#2a2140; color:var(--muted);}
+  :root[data-theme="dark"] table.admin-users th{background:#2a2140; color:var(--muted);}
+  :root[data-theme="dark"] .sector-chip{background:#2a2140; color:#c4a9f0;}
+  :root[data-theme="dark"] .sector-chip.on{background:var(--purple); color:#fff;}
+  :root[data-theme="dark"] .mini-btn{background:#211a33; color:var(--ink); border-color:var(--border);}
+  :root[data-theme="dark"] .mini-btn.off{background:#1a1430; color:var(--muted);}
+
   /* header toggle buttons (theme + language) */
   .hdr-toggle{
     display:inline-flex; align-items:center; gap:6px; cursor:pointer;
@@ -706,7 +767,7 @@ function brandFallback(img){
   <div class="in">
   <div class="brand">
     <div class="brand-text">
-      <h1>ICTD Weekly Status Report <span class="version-badge">v5.9</span></h1>
+      <h1>ICTD Weekly Status Report <span class="version-badge">v6.0</span></h1>
       <p class="sub">Sulaiman Al Rajhi University — Executive Directorate of Communications &amp; Information Technology</p>
     </div>
   </div>
@@ -723,6 +784,7 @@ function brandFallback(img){
   <button data-view="submit" class="active"><i data-lucide="edit-3"></i> Submit Report</button>
   <button data-view="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
   <button data-view="compiled"><i data-lucide="file-text"></i> Compiled Report (for CIO)</button>
+  <button data-view="admin" id="nav-admin" hidden><i data-lucide="shield-check"></i> Access &amp; Permissions</button>
 </div>
 
 <div class="container">
@@ -845,6 +907,50 @@ function brandFallback(img){
     </div>
   </div>
 
+  <!-- ACCESS & PERMISSIONS VIEW (admins only) -->
+  <div class="view" id="view-admin">
+    <div class="card">
+      <div class="admin-head">
+        <h2><span class="icon-badge"><i data-lucide="shield-check"></i></span> الصلاحيات <span class="admin-sub">Access &amp; Permissions — admins only</span></h2>
+        <button class="btn" id="btn-add-user" type="button"><i data-lucide="user-plus"></i> إضافة مستخدم</button>
+      </div>
+
+      <div class="role-cards">
+        <div class="role-card role-admin">
+          <div class="role-top"><span class="role-badge badge-admin">تحكم كامل · Admin</span></div>
+          <p>كل الصلاحيات: إضافة وتعديل وحذف المهام والمرفقات، فريق العمل، وهذه اللوحة.</p>
+        </div>
+        <div class="role-card role-editor">
+          <div class="role-top"><span class="role-badge badge-editor">إضافة وتعديل · Editor</span></div>
+          <p>إضافة المهام وتعديلها ورفع المرفقات وحفظ القطاعات التي يملكها. لا تعديل للفريق أو الصلاحيات.</p>
+        </div>
+        <div class="role-card role-viewer">
+          <div class="role-top"><span class="role-badge badge-viewer">اطلاع فقط · Viewer</span></div>
+          <p>استعراض المهام ولوحة المعلومات والملخص، وتنزيل المرفقات والتصدير، دون أي تعديل.</p>
+        </div>
+      </div>
+
+      <div id="admin-addbox" class="admin-addbox" hidden>
+        <div class="addbox-grid">
+          <div class="ev-field"><span>البريد الجامعي · Email</span><input type="text" id="au-email" dir="ltr" placeholder="name@sr.edu.sa"></div>
+          <div class="ev-field"><span>الاسم · Name</span><input type="text" id="au-name" placeholder="Full name"></div>
+          <div class="ev-field"><span>الدور · Role</span>
+            <select id="au-role"><option value="user">Editor / Viewer (user)</option><option value="admin">Admin</option></select>
+          </div>
+        </div>
+        <div class="addbox-actions">
+          <button class="btn" id="btn-save-user" type="button"><i data-lucide="save"></i> حفظ · Save</button>
+          <button class="btn secondary" id="btn-cancel-user" type="button">إلغاء · Cancel</button>
+          <span class="addbox-note">الدور الفعلي (Editor مقابل Viewer) يُحدَّد تلقائيًا من ملكية القطاعات أدناه.</span>
+        </div>
+      </div>
+
+      <div id="admin-users-wrap" class="admin-users-wrap">
+        <div class="admin-loading" id="admin-loading"><i data-lucide="loader"></i> جارٍ التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- COMPILED REPORT VIEW -->
   <div class="view" id="view-compiled">
     <div class="card no-print">
@@ -870,7 +976,7 @@ function brandFallback(img){
 <footer class="sru-footer sru-tech-bg-dark">
   <div class="in">
     <div class="sru-support"><b>For Support:</b> Dial <span class="star">*</span> <span class="or">or</span> Send email to: <a href="mailto:servicedesk@sr.edu.sa">servicedesk@sr.edu.sa</a></div>
-    <div class="footer-version">ICTD Weekly Status Report — Version 5.9 · Sulaiman Al Rajhi University</div>
+    <div class="footer-version">ICTD Weekly Status Report — Version 6.0 · Sulaiman Al Rajhi University</div>
     <a class="sru-itoc" href="https://ictsru.github.io/ITOC/#forms" target="_blank" rel="noopener noreferrer"
        aria-label="ITOC — IT Operations Center, Forms" title="ITOC — IT Operations Center · Forms">
       <img src="https://ictsru.github.io/brand/logos/itoc-logo.png" data-fallback="itoc" onerror="brandFallback(this)" alt="ITOC — IT Operations Center">
@@ -1493,9 +1599,135 @@ document.querySelectorAll('.navbar button').forEach(btn=>{
     document.getElementById('view-'+btn.dataset.view).classList.add('active');
     if(btn.dataset.view === 'dashboard') loadDashboard();
     if(btn.dataset.view === 'compiled') loadCompiledSetup();
+    if(btn.dataset.view === 'admin') loadAdminPanel();
     if(window.lucide) lucide.createIcons();
   });
 });
+
+/* ============================================================
+   v6.0 — Access & Permissions panel (admins only)
+   ============================================================ */
+var ADMIN_STATE = { loaded:false, users:[], sectors:[], me:'' };
+
+// Reveal the admin tab only for admins (server re-checks every call anyway).
+// Runs on load because BOOTSTRAP is assigned further down the file.
+function revealAdminTab_(){
+  try{
+    if(typeof BOOTSTRAP !== 'undefined' && BOOTSTRAP && BOOTSTRAP.isAdmin){
+      var nav = document.getElementById('nav-admin');
+      if(nav) nav.hidden = false;
+    }
+  }catch(e){}
+}
+window.addEventListener('load', revealAdminTab_);
+
+function loadAdminPanel(force){
+  var wrap = document.getElementById('admin-users-wrap');
+  if(!wrap) return;
+  if(ADMIN_STATE.loaded && !force){ renderAdminUsers(); return; }
+  wrap.innerHTML = '<div class="admin-loading"><i data-lucide="loader"></i> جارٍ التحميل…</div>';
+  if(window.lucide) lucide.createIcons();
+  gsCall('apiAdminListUsers').then(function(res){
+    ADMIN_STATE.users = (res && res.users) || [];
+    ADMIN_STATE.sectors = (res && res.sectors) || [];
+    ADMIN_STATE.me = (res && res.me) || '';
+    ADMIN_STATE.loaded = true;
+    renderAdminUsers();
+  }).catch(function(err){
+    wrap.innerHTML = '<div class="admin-err">تعذّر التحميل — ' + escapeHtml(err && err.message ? err.message : String(err)) + '</div>';
+  });
+}
+
+function tierPill(tier){
+  var map = {admin:['tier-admin','Admin'], editor:['tier-editor','Editor'], viewer:['tier-viewer','Viewer']};
+  var t = map[tier] || map.viewer;
+  return '<span class="tier-pill '+t[0]+'">'+t[1]+'</span>';
+}
+
+function renderAdminUsers(){
+  var wrap = document.getElementById('admin-users-wrap');
+  if(!wrap) return;
+  var sectors = ADMIN_STATE.sectors;
+  var rows = ADMIN_STATE.users.map(function(u){
+    var chips = sectors.map(function(s){
+      if(s.all) return '<span class="sector-chip all" title="أي مستخدم يمكنه الحفظ — everyone can save">'+escapeHtml(s.label)+'</span>';
+      var on = u.sectors.indexOf(s.code) !== -1;
+      return '<span class="sector-chip'+(on?' on':'')+'" data-email="'+escapeAttrText(u.email)+'" data-code="'+escapeAttrText(s.code)+'" role="button" tabindex="0">'+escapeHtml(s.label)+'</span>';
+    }).join('');
+    var activeBtn = '<button class="mini-btn '+(u.active?'on':'off')+'" data-act="active" data-email="'+escapeAttrText(u.email)+'" data-val="'+(u.active?'0':'1')+'">'+(u.active?'نشط':'موقوف')+'</button>';
+    var roleBtn = '<button class="mini-btn" data-act="role" data-email="'+escapeAttrText(u.email)+'" data-val="'+(u.role==='admin'?'user':'admin')+'">'+(u.role==='admin'?'↓ user':'↑ admin')+'</button>';
+    return '<tr>'+
+      '<td><div class="u-email">'+escapeHtml(u.email)+'</div>'+(u.name?'<div class="u-name">'+escapeHtml(u.name)+'</div>':'')+'</td>'+
+      '<td>'+tierPill(u.tier)+'</td>'+
+      '<td><div class="sector-chips">'+(chips||'<span class="u-name">—</span>')+'</div></td>'+
+      '<td><div class="u-actions">'+activeBtn+roleBtn+'</div></td>'+
+    '</tr>';
+  }).join('');
+  wrap.innerHTML =
+    '<table class="admin-users"><thead><tr>'+
+      '<th>المستخدم · User</th><th>المستوى · Tier</th><th>القطاعات · Sectors (اضغط للتبديل)</th><th>إجراءات · Actions</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>';
+  if(window.lucide) lucide.createIcons();
+}
+
+// Event delegation for the whole panel
+(function(){
+  var view = document.getElementById('view-admin');
+  if(!view) return;
+
+  function busy(el, on){ if(el){ el.style.opacity = on?'.5':''; el.style.pointerEvents = on?'none':''; } }
+
+  view.addEventListener('click', function(e){
+    var chip = e.target.closest('.sector-chip');
+    if(chip && !chip.classList.contains('all')){
+      var email = chip.dataset.email, code = chip.dataset.code;
+      var u = ADMIN_STATE.users.find(function(x){ return x.email === email; });
+      if(!u) return;
+      var want = chip.classList.contains('on') ? u.sectors.filter(function(c){return c!==code;}) : u.sectors.concat([code]);
+      busy(chip, true);
+      gsCall('apiAdminSetSectors', email, want).then(function(){
+        u.sectors = want; EDITABLE_SECTORS = null; renderAdminUsers();
+        toast('تم تحديث القطاعات — sectors updated');
+      }).catch(function(err){ busy(chip,false); toast(err && err.message ? err.message : 'فشل الحفظ'); });
+      return;
+    }
+    var btn = e.target.closest('.mini-btn');
+    if(btn){
+      var em = btn.dataset.email, act = btn.dataset.act, val = btn.dataset.val;
+      busy(btn, true);
+      if(act === 'active'){
+        gsCall('apiAdminSetActive', em, val==='1').then(function(){ loadAdminPanel(true); toast('تم التحديث — updated'); })
+          .catch(function(err){ busy(btn,false); toast(err && err.message ? err.message : 'فشل'); });
+      } else if(act === 'role'){
+        var u2 = ADMIN_STATE.users.find(function(x){ return x.email === em; });
+        gsCall('apiAdminUpsertUser', {email:em, name:u2?u2.name:'', role:val, active:u2?u2.active:true})
+          .then(function(){ loadAdminPanel(true); toast('تم تحديث الدور — role updated'); })
+          .catch(function(err){ busy(btn,false); toast(err && err.message ? err.message : 'فشل'); });
+      }
+    }
+  });
+
+  // keyboard toggle for chips
+  view.addEventListener('keydown', function(e){
+    if((e.key==='Enter'||e.key===' ') && e.target.classList && e.target.classList.contains('sector-chip')){ e.preventDefault(); e.target.click(); }
+  });
+
+  // Add-user box
+  var box = document.getElementById('admin-addbox');
+  document.getElementById('btn-add-user').addEventListener('click', function(){ box.hidden = !box.hidden; if(!box.hidden){ document.getElementById('au-email').focus(); if(window.lucide) lucide.createIcons(); } });
+  document.getElementById('btn-cancel-user').addEventListener('click', function(){ box.hidden = true; ['au-email','au-name'].forEach(function(id){ document.getElementById(id).value=''; }); });
+  document.getElementById('btn-save-user').addEventListener('click', function(){
+    var email = document.getElementById('au-email').value.trim().toLowerCase();
+    var name  = document.getElementById('au-name').value.trim();
+    var role  = document.getElementById('au-role').value;
+    if(!/^[^@\s]+@sr\.edu\.sa$/.test(email)){ toast('أدخل بريدًا جامعيًا صحيحًا — a valid @sr.edu.sa email'); return; }
+    var btn = document.getElementById('btn-save-user'); busy(btn, true);
+    gsCall('apiAdminUpsertUser', {email:email, name:name, role:role, active:true}).then(function(){
+      box.hidden = true; document.getElementById('au-email').value=''; document.getElementById('au-name').value='';
+      loadAdminPanel(true); toast('تمت إضافة المستخدم — user saved');
+    }).catch(function(err){ busy(btn,false); toast(err && err.message ? err.message : 'فشل الحفظ'); });
+  });
+})();
 
 // RAG choice styling
 document.querySelectorAll('#rag-choice input').forEach(inp=>{

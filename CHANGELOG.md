@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.0 — 2026-11-15
+- v6.0 — Access & Permissions panel (admins only): manage AllowedUsers roles/active and SectorOwners assignments from inside the app
+
 All notable changes to the ICTD Weekly Status Report app.
 
 ## v5.9 — 2026-11-15

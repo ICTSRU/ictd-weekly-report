@@ -25,7 +25,7 @@
 /* ▼▼▼ CONFIG — change per platform ▼▼▼ */
 const APP_NAME       = 'التقرير الأسبوعي لحالة تقنية المعلومات';
 const APP_NAME_EN    = 'ICTD Weekly Status Report';
-const APP_VERSION    = '5.9';
+const APP_VERSION    = '6.0';
 const ALLOWED_DOMAIN = 'sr.edu.sa';
 const FAVICON_URL    = 'https://ictsru.github.io/ITOC/assets/itoc-logo.png';
 
@@ -147,11 +147,12 @@ function getInitialData_() {
     return {
       rows: n8nGet_(N8N_DATA),
       editable: editableSectors_(currentEmail_()),
+      isAdmin: isAdmin_(currentEmail_()),
       loadedAt: new Date().toISOString()
     };
   } catch (e) {
     console.error('getInitialData_ failed: ' + e);
-    return { rows: [], editable: editableSectors_(currentEmail_()), error: String(e && e.message || e) };
+    return { rows: [], editable: editableSectors_(currentEmail_()), isAdmin: isAdmin_(currentEmail_()), error: String(e && e.message || e) };
   }
 }
 
@@ -424,6 +425,166 @@ function setupSectorOwners() {
   try {
     SpreadsheetApp.getActive().toast('مصفوفة الصلاحيات جاهزة: ' + existing.length + ' قطاعًا (أُضيف ' + added + ').', SHEET_OWNERS, 8);
   } catch (e) {}
+}
+
+/* ===================================================================
+ *  v6.0 — لوحة الصلاحيات (Access & Permissions panel) — admins only
+ *  A UI over the two sheets that already drive access:
+ *    AllowedUsers  — who may open the app (+ role admin/user, active)
+ *    SectorOwners  — who may SAVE each sector
+ *  Role model shown in the panel (mapped onto what the server enforces):
+ *    Admin  = role 'admin' in AllowedUsers (or OWNER_EMAILS) — full control
+ *    Editor = owns at least one sector in SectorOwners
+ *    Viewer = allow-listed + active, owns no sector (read-only)
+ *  Every function re-checks admin on the server — the hidden nav tab is
+ *  only cosmetic, google.script.run is reachable without the page.
+ * =================================================================== */
+
+/** True if this email is an administrator (OWNER_EMAILS or an active admin row). */
+function isAdmin_(email) {
+  if (!email) return false;
+  email = email.toLowerCase();
+  if (OWNER_EMAILS.map(e => e.toLowerCase()).indexOf(email) !== -1) return true;
+  var rows = allUsers_();
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i].email === email) return rows[i].active && String(rows[i].role).toLowerCase() === 'admin';
+  }
+  return false;
+}
+
+function requireAdmin_() {
+  var email = requireSruUser_();
+  if (!isAdmin_(email)) throw new Error('هذه اللوحة متاحة للمشرفين فقط — Access & Permissions is for admins only.');
+  return email;
+}
+
+/** All AllowedUsers rows (including inactive) as objects. */
+function allUsers_() {
+  var out = [];
+  try {
+    var sh = accessSheet_(false);
+    if (sh && sh.getLastRow() > 1) {
+      sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues().forEach(function (r) {
+        var email = String(r[0] || '').trim().toLowerCase();
+        if (!email) return;
+        out.push({
+          email: email,
+          name: String(r[1] || ''),
+          role: String(r[2] || 'user').toLowerCase() === 'admin' ? 'admin' : 'user',
+          active: r[3] === true || String(r[3]).toUpperCase() === 'TRUE',
+          notes: String(r[4] || '')
+        });
+      });
+    }
+  } catch (e) { console.error('allUsers_ failed: ' + e); }
+  return out;
+}
+
+/** Everything the panel needs in one call: users (with sectors + derived tier) and the sector list. */
+function apiAdminListUsers() {
+  requireAdmin_();
+  var owners = sectorOwners_();                 // {code: ['ALL'] | [emails]}
+  var sectorsOf = {};                           // email -> [codes] (excluding ALL sectors)
+  Object.keys(owners).forEach(function (code) {
+    var list = owners[code];
+    if (list.indexOf('ALL') !== -1) return;
+    list.forEach(function (e) { (sectorsOf[e] = sectorsOf[e] || []).push(code); });
+  });
+  var sectorMeta = [];
+  DEFAULT_SECTOR_OWNERS.forEach(function (r) { sectorMeta.push({ code: r[0], label: r[1], all: String(r[2]).toUpperCase() === 'ALL' }); });
+  // include any sector present in the tab but not in the default list
+  Object.keys(owners).forEach(function (code) {
+    if (!sectorMeta.some(function (s) { return s.code === code; })) sectorMeta.push({ code: code, label: code, all: owners[code].indexOf('ALL') !== -1 });
+  });
+
+  var users = allUsers_().map(function (u) {
+    var secs = sectorsOf[u.email] || [];
+    var admin = isAdmin_(u.email);
+    var tier = admin ? 'admin' : (secs.length ? 'editor' : 'viewer');
+    return { email: u.email, name: u.name, role: u.role, active: u.active, notes: u.notes, sectors: secs, tier: tier };
+  });
+  return { users: users, sectors: sectorMeta, me: currentEmail_() };
+}
+
+/** Add a new user or update an existing one's name/role/active. */
+function apiAdminUpsertUser(u) {
+  requireAdmin_();
+  if (!u || !u.email) throw new Error('Email is required');
+  var email = String(u.email).trim().toLowerCase();
+  if (!/^[^@\s]+@sr\.edu\.sa$/.test(email)) throw new Error('Must be a full @sr.edu.sa address');
+  var role = String(u.role).toLowerCase() === 'admin' ? 'admin' : 'user';
+  var active = (u.active === false) ? false : true;
+  var name = String(u.name || '');
+  var notes = String(u.notes || '');
+
+  var sh = accessSheet_(true);
+  var last = sh.getLastRow();
+  var rows = last > 1 ? sh.getRange(2, 1, last - 1, 5).getValues() : [];
+  var found = -1;
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][0]).trim().toLowerCase() === email) { found = i; break; }
+  }
+  if (found !== -1) {
+    var row = 2 + found;
+    if (!name) name = rows[found][1];             // keep existing name if none supplied
+    if (!notes) notes = rows[found][4];
+    sh.getRange(row, 1, 1, 5).setValues([[email, name, role, active, notes]]);
+    sh.getRange(row, 4).insertCheckboxes();
+  } else {
+    var row2 = Math.max(last + 1, 2);
+    sh.getRange(row2, 1, 1, 5).setValues([[email, name, role, active, notes || 'added via Access panel']]);
+    sh.getRange(row2, 4).insertCheckboxes();
+    sh.getRange(row2, 4).setValue(active);
+  }
+  CacheService.getScriptCache().remove('acl_v1');
+  return { ok: true };
+}
+
+/** Flip a user's active flag. */
+function apiAdminSetActive(email, active) {
+  requireAdmin_();
+  email = String(email || '').trim().toLowerCase();
+  var sh = accessSheet_(true);
+  var last = sh.getLastRow();
+  var rows = last > 1 ? sh.getRange(2, 1, last - 1, 1).getValues() : [];
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][0]).trim().toLowerCase() === email) {
+      sh.getRange(2 + i, 4).insertCheckboxes();
+      sh.getRange(2 + i, 4).setValue(active === true);
+      CacheService.getScriptCache().remove('acl_v1');
+      return { ok: true };
+    }
+  }
+  throw new Error('User not found: ' + email);
+}
+
+/** Set exactly which sectors this email owns (ALL-sectors are left untouched). */
+function apiAdminSetSectors(email, codes) {
+  requireAdmin_();
+  email = String(email || '').trim().toLowerCase();
+  if (!email) throw new Error('Email required');
+  var want = {};
+  (codes || []).forEach(function (c) { want[String(c)] = true; });
+
+  var sh = ownersSheet_(true);
+  var last = sh.getLastRow();
+  if (last < 2) throw new Error('SectorOwners is empty — run setupSectorOwners first.');
+  var data = sh.getRange(2, 1, last - 1, 4).getValues();
+  for (var i = 0; i < data.length; i++) {
+    var code = String(data[i][0]).trim();
+    if (!code) continue;
+    var raw = String(data[i][2] || '').trim();
+    if (raw.toUpperCase() === 'ALL') continue;              // everyone already edits ALL sectors
+    var list = raw.split(/[,;\s]+/).map(function (e) { return e.trim().toLowerCase(); }).filter(Boolean);
+    var has = list.indexOf(email) !== -1;
+    if (want[code] && !has) list.push(email);
+    else if (!want[code] && has) list = list.filter(function (e) { return e !== email; });
+    else continue;                                          // no change for this row
+    data[i][2] = list.join(', ');
+  }
+  sh.getRange(2, 1, data.length, 4).setValues(data);
+  CacheService.getScriptCache().remove('owners_v1');
+  return { ok: true };
 }
 
 /* ---------------------------- Access log ---------------------------- */
