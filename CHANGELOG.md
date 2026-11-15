@@ -2,6 +2,13 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v5.9 — 2026-11-15
+
+- **Night mode.** A new header toggle switches the whole app between light and a dark purple theme. First load follows the device's OS setting; the choice is then remembered per browser. Implemented as `:root[data-theme="dark"]` token overrides plus targeted surface fixes, scoped so it also wins over the external brand-kit stylesheets. The theme is set before first paint, so there is no white flash.
+- First Apps Script source (`apps-script/Code.gs`, `apps-script/Index.html`) committed into the repo. It previously lived only in the Apps Script editor; the CI deploy workflow needs it here.
+
+> Note: CHANGELOG entries for v5.5–v5.8 were recorded in the Apps Script project, not here (the source was not yet in the repo). v5.8 state is the baseline this builds on.
+
 ## v5.4
 
 - Added **Atef Elnadi** to the shared people list, so he appears in **Submitted By**, **Presented By** (Coffee with IT) and **Supported By** (Event Support). Inserted in alphabetical order.
