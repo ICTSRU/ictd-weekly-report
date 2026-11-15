@@ -4,7 +4,7 @@
 <meta name="version" content="<?= version ?>">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ICTD Weekly Status Report — v6.0</title>
+<title>ICTD Weekly Status Report — v6.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -717,6 +717,25 @@
   .hdr-toggle .lbl{letter-spacing:.02em;}
   @media print{ .hdr-toggle{display:none;} }
   @media (max-width:640px){ .hdr-toggle{padding:5px 10px; font-size:11px;} }
+
+  /* ============================================================
+     v6.1 — RTL fixes (flexbox mirrors on its own; these are the
+     few rules written with physical left/right).
+     ============================================================ */
+  [dir="rtl"]{ text-align:right; }
+  [dir="rtl"] .version-badge{ margin-left:0; margin-inline-start:10px; }
+  [dir="rtl"] .sector-card .body .event-list{
+    border-left:0; border-right:3px solid var(--evt); border-radius:6px 0 0 6px;
+  }
+  [dir="rtl"] table.trend td.week-label{ text-align:right; }
+  [dir="rtl"] .admin-sub{ margin-inline-start:4px; }
+  /* keep inherently-LTR content left-aligned/ltr even in RTL */
+  [dir="rtl"] .u-email, [dir="rtl"] #au-email, [dir="rtl"] .sru-support{ direction:ltr; }
+  [dir="rtl"] .report-cover .cover-summary,
+  [dir="rtl"] .section-subtitle,
+  [dir="rtl"] .coffee-strip-title,
+  [dir="rtl"] .card h2,
+  [dir="rtl"] .admin-head h2{ text-align:right; }
 </style>
 <!-- SRU Brand Kit v1.0 — shared source, so one update restyles every ICTD/ITOC platform.
      Linked AFTER this page's own styles so the kit wins. If the kit is unreachable the
@@ -767,11 +786,13 @@ function brandFallback(img){
   <div class="in">
   <div class="brand">
     <div class="brand-text">
-      <h1>ICTD Weekly Status Report <span class="version-badge">v6.0</span></h1>
+      <h1>ICTD Weekly Status Report <span class="version-badge">v6.1</span></h1>
       <p class="sub">Sulaiman Al Rajhi University — Executive Directorate of Communications &amp; Information Technology</p>
     </div>
   </div>
   <div class="brand-right">
+    <button type="button" class="hdr-toggle no-print" id="btn-lang"
+            title="العربية / English" aria-label="Switch language"><span class="lbl">العربية</span></button>
     <button type="button" class="hdr-toggle no-print" id="btn-theme"
             title="Toggle night mode — تبديل الوضع الليلي" aria-label="Toggle night mode"></button>
     <div class="sub" id="todayLabel"><i data-lucide="calendar"></i></div>
@@ -781,10 +802,10 @@ function brandFallback(img){
 </div>
 
 <div class="navbar no-print">
-  <button data-view="submit" class="active"><i data-lucide="edit-3"></i> Submit Report</button>
-  <button data-view="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-  <button data-view="compiled"><i data-lucide="file-text"></i> Compiled Report (for CIO)</button>
-  <button data-view="admin" id="nav-admin" hidden><i data-lucide="shield-check"></i> Access &amp; Permissions</button>
+  <button data-view="submit" class="active"><i data-lucide="edit-3"></i> <span data-i18n="nav.submit">Submit Report</span></button>
+  <button data-view="dashboard"><i data-lucide="layout-dashboard"></i> <span data-i18n="nav.dashboard">Dashboard</span></button>
+  <button data-view="compiled"><i data-lucide="file-text"></i> <span data-i18n="nav.compiled">Compiled Report (for CIO)</span></button>
+  <button data-view="admin" id="nav-admin" hidden><i data-lucide="shield-check"></i> <span data-i18n="nav.admin">Access &amp; Permissions</span></button>
 </div>
 
 <div class="container">
@@ -792,13 +813,13 @@ function brandFallback(img){
   <!-- SUBMIT VIEW -->
   <div class="view active" id="view-submit">
     <div class="card">
-      <h2><span class="icon-badge"><i data-lucide="clipboard-edit"></i></span> Submit Your Sector's Weekly Update</h2>
-      <p class="hint">Each sector manager fills this once per week. Submitting again for the same sector and week overwrites your previous entry.</p>
+      <h2><span class="icon-badge"><i data-lucide="clipboard-edit"></i></span> <span data-i18n="submit.title">Submit Your Sector's Weekly Update</span></h2>
+      <p class="hint" data-i18n="submit.hint">Each sector manager fills this once per week. Submitting again for the same sector and week overwrites your previous entry.</p>
 
-      <label>Week Of (Sunday)</label>
+      <label data-i18n="submit.week">Week Of (Sunday)</label>
       <select id="f-week"></select>
 
-      <label>Sector</label>
+      <label data-i18n="submit.sector">Sector</label>
       <div class="sector-row">
         <select id="f-sector">
         <option value="NOC">NOC — Network Operations Center</option>
@@ -814,64 +835,64 @@ function brandFallback(img){
         <option value="Azzam">Azzam</option>
         <option value="Atef">Atef</option>
         </select>
-        <button class="btn secondary" id="btn-load" type="button"><i data-lucide="rotate-ccw"></i> Load My Existing Entry</button>
+        <button class="btn secondary" id="btn-load" type="button"><i data-lucide="rotate-ccw"></i> <span data-i18n="submit.load">Load My Existing Entry</span></button>
       </div>
 
-      <label id="status-label">Overall Status</label>
+      <label id="status-label" data-i18n="submit.status">Overall Status</label>
       <div class="rag-choice" id="rag-choice">
-        <label class="opt-green"><input type="radio" name="rag" value="Green"><span>🟢 On Track</span></label>
-        <label class="opt-amber"><input type="radio" name="rag" value="Amber"><span>🟡 At Risk</span></label>
-        <label class="opt-red"><input type="radio" name="rag" value="Red"><span>🔴 Critical</span></label>
+        <label class="opt-green"><input type="radio" name="rag" value="Green"><span data-i18n="rag.green">🟢 On Track</span></label>
+        <label class="opt-amber"><input type="radio" name="rag" value="Amber"><span data-i18n="rag.amber">🟡 At Risk</span></label>
+        <label class="opt-red"><input type="radio" name="rag" value="Red"><span data-i18n="rag.red">🔴 Critical</span></label>
       </div>
       <div id="auto-status" style="display:none;">
         <div class="auto-status-box">
           <span class="auto-pill" id="auto-status-pill">—</span>
-          <span class="auto-note">Set automatically from the number of sessions: 1 or fewer = Critical · 2–3 = At Risk · more than 3 = On Track</span>
+          <span class="auto-note" data-i18n="submit.autostatus">Set automatically from the number of sessions: 1 or fewer = Critical · 2–3 = At Risk · more than 3 = On Track</span>
         </div>
       </div>
 
       <div id="generic-section">
-        <label>Key Activities This Week</label>
-        <div class="list-field" id="list-activities" data-placeholder="e.g., Completed firmware upgrade on core switches"></div>
-        <button type="button" class="btn-add" data-target="list-activities"><i data-lucide="plus"></i> Add item</button>
+        <label data-i18n="submit.activities">Key Activities This Week</label>
+        <div class="list-field" id="list-activities" data-placeholder="e.g., Completed firmware upgrade on core switches" data-i18n-ph="submit.ph.activities"></div>
+        <button type="button" class="btn-add" data-target="list-activities"><i data-lucide="plus"></i> <span data-i18n="btn.additem">Add item</span></button>
 
-        <label id="lbl-issues" class="risk-label" for="list-issues">Issues / Risk</label>
-        <div class="list-field" id="list-issues" data-placeholder="e.g., Vendor delay on replacement parts"></div>
-        <button type="button" class="btn-add" data-target="list-issues"><i data-lucide="plus"></i> Add item</button>
+        <label id="lbl-issues" class="risk-label" for="list-issues" data-i18n="submit.issues">Issues / Risk</label>
+        <div class="list-field" id="list-issues" data-placeholder="e.g., Vendor delay on replacement parts" data-i18n-ph="submit.ph.issues"></div>
+        <button type="button" class="btn-add" data-target="list-issues"><i data-lucide="plus"></i> <span data-i18n="btn.additem">Add item</span></button>
 
-        <label>Support Needed From CIO / Other Sectors</label>
-        <div class="list-field" id="list-support" data-placeholder="e.g., Budget approval for backup license renewal"></div>
-        <button type="button" class="btn-add" data-target="list-support"><i data-lucide="plus"></i> Add item</button>
+        <label data-i18n="submit.support">Support Needed From CIO / Other Sectors</label>
+        <div class="list-field" id="list-support" data-placeholder="e.g., Budget approval for backup license renewal" data-i18n-ph="submit.ph.support"></div>
+        <button type="button" class="btn-add" data-target="list-support"><i data-lucide="plus"></i> <span data-i18n="btn.additem">Add item</span></button>
 
-        <label>Tasks (Key Activities) for Next Week</label>
-        <div class="list-field" id="list-nexttasks" data-placeholder="e.g., Patch core servers"></div>
-        <button type="button" class="btn-add" data-target="list-nexttasks"><i data-lucide="plus"></i> Add item</button>
+        <label data-i18n="submit.nextweek">Tasks (Key Activities) for Next Week</label>
+        <div class="list-field" id="list-nexttasks" data-placeholder="e.g., Patch core servers" data-i18n-ph="submit.ph.nextweek"></div>
+        <button type="button" class="btn-add" data-target="list-nexttasks"><i data-lucide="plus"></i> <span data-i18n="btn.additem">Add item</span></button>
       </div>
 
       <div id="session-section" style="display:none;">
-        <label>Coffee with IT — Sessions</label>
-        <p class="hint" style="margin:-2px 0 10px;">Sessions delivered this week. Add one entry per session.</p>
+        <label data-i18n="submit.sessions">Coffee with IT — Sessions</label>
+        <p class="hint" style="margin:-2px 0 10px;" data-i18n="submit.sessions.hint">Sessions delivered this week. Add one entry per session.</p>
         <div id="session-list"></div>
-        <button type="button" class="btn-add" id="btn-add-session"><i data-lucide="coffee"></i> Add session</button>
+        <button type="button" class="btn-add" id="btn-add-session"><i data-lucide="coffee"></i> <span data-i18n="btn.addsession">Add session</span></button>
       </div>
 
       <div id="event-section" style="display:none;">
-        <label>Event Support</label>
-        <p class="hint" style="margin:-2px 0 10px;">Events supported this week. Add one entry per event.</p>
+        <label data-i18n="submit.events">Event Support</label>
+        <p class="hint" style="margin:-2px 0 10px;" data-i18n="submit.events.hint">Events supported this week. Add one entry per event.</p>
         <div id="event-list"></div>
-        <button type="button" class="btn-add" id="btn-add-event"><i data-lucide="calendar-plus"></i> Add event</button>
+        <button type="button" class="btn-add" id="btn-add-event"><i data-lucide="calendar-plus"></i> <span data-i18n="btn.addevent">Add event</span></button>
       </div>
 
-      <label>Attachments</label>
-      <p class="hint" style="margin:-2px 0 10px;">Upload supporting files (reports, screenshots, evidence). Add a short brief for each so the CIO knows what it is.</p>
+      <label data-i18n="submit.attachments">Attachments</label>
+      <p class="hint" style="margin:-2px 0 10px;" data-i18n="submit.attachments.hint">Upload supporting files (reports, screenshots, evidence). Add a short brief for each so the CIO knows what it is.</p>
       <div id="attach-list"></div>
-      <button type="button" class="btn-add" id="btn-add-attach"><i data-lucide="paperclip"></i> Add attachment</button>
+      <button type="button" class="btn-add" id="btn-add-attach"><i data-lucide="paperclip"></i> <span data-i18n="btn.addattach">Add attachment</span></button>
 
-      <label>Submitted By</label>
+      <label data-i18n="submit.submittedby">Submitted By</label>
       <select id="f-name"></select>
 
       <div class="btn-row">
-        <button class="btn" id="btn-submit"><i data-lucide="save"></i> Save Report</button>
+        <button class="btn" id="btn-submit"><i data-lucide="save"></i> <span data-i18n="btn.save">Save Report</span></button>
         <div id="readonly-note" class="readonly-note" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -884,25 +905,25 @@ function brandFallback(img){
   <!-- DASHBOARD VIEW -->
   <div class="view" id="view-dashboard">
     <div class="card">
-      <h2><span class="icon-badge"><i data-lucide="trending-up"></i></span> Status Trend (last weeks)</h2>
-      <p class="hint">Overall RAG status per sector, most recent week first.</p>
+      <h2><span class="icon-badge"><i data-lucide="trending-up"></i></span> <span data-i18n="dash.trend.title">Status Trend (last weeks)</span></h2>
+      <p class="hint" data-i18n="dash.trend.hint">Overall RAG status per sector, most recent week first.</p>
       <div class="trend-wrap"><table class="trend" id="trend-table"></table></div>
     </div>
 
     <div class="card">
-      <h2><span class="icon-badge"><i data-lucide="layout-dashboard"></i></span> Weekly Dashboard</h2>
-      <p class="hint">Live status across all sectors for the selected week.</p>
+      <h2><span class="icon-badge"><i data-lucide="layout-dashboard"></i></span> <span data-i18n="dash.title">Weekly Dashboard</span></h2>
+      <p class="hint" data-i18n="dash.hint">Live status across all sectors for the selected week.</p>
       <div class="week-select-row">
-        <label style="margin:0;">Viewing week:</label>
+        <label style="margin:0;" data-i18n="dash.viewing">Viewing week:</label>
         <select id="dash-week"></select>
-        <button class="btn secondary no-print" id="btn-refresh"><i data-lucide="refresh-cw"></i> Refresh</button>
+        <button class="btn secondary no-print" id="btn-refresh"><i data-lucide="refresh-cw"></i> <span data-i18n="btn.refresh">Refresh</span></button>
       </div>
       <div id="coffee-strip-wrap" style="display:none;">
-        <p class="coffee-strip-title"><i data-lucide="coffee"></i> Coffee with IT — Sessions by Audience</p>
+        <p class="coffee-strip-title"><i data-lucide="coffee"></i> <span data-i18n="dash.coffee">Coffee with IT — Sessions by Audience</span></p>
         <div class="coffee-strip" id="coffee-strip"></div>
       </div>
       <div class="dash-divider"></div>
-      <p class="section-subtitle"><i data-lucide="layout-grid"></i> Sector Status</p>
+      <p class="section-subtitle"><i data-lucide="layout-grid"></i> <span data-i18n="dash.sectorstatus">Sector Status</span></p>
       <div class="status-grid" id="status-grid"></div>
     </div>
   </div>
@@ -954,14 +975,14 @@ function brandFallback(img){
   <!-- COMPILED REPORT VIEW -->
   <div class="view" id="view-compiled">
     <div class="card no-print">
-      <h2><span class="icon-badge"><i data-lucide="file-text"></i></span> Compiled Report</h2>
-      <p class="hint">Select the week to compile into a CIO-ready report, then print or export as PDF — or email the full report straight to the CIO.</p>
+      <h2><span class="icon-badge"><i data-lucide="file-text"></i></span> <span data-i18n="compiled.title">Compiled Report</span></h2>
+      <p class="hint" data-i18n="compiled.hint">Select the week to compile into a CIO-ready report, then print or export as PDF — or email the full report straight to the CIO.</p>
       <div class="week-select-row">
         <select id="report-week"></select>
-        <button class="btn" id="btn-print"><i data-lucide="printer"></i> Print / Save as PDF</button>
-        <button class="btn btn-email" id="btn-email"><i data-lucide="mail"></i> <span>Email Report to CIO</span></button>
+        <button class="btn" id="btn-print"><i data-lucide="printer"></i> <span data-i18n="btn.print">Print / Save as PDF</span></button>
+        <button class="btn btn-email" id="btn-email"><i data-lucide="mail"></i> <span data-i18n="btn.email">Email Report to CIO</span></button>
       </div>
-      <p class="hint email-note">
+      <p class="hint email-note" data-i18n-html="compiled.emailnote">
         Sends the full report — in the email and as a <b>PDF attachment</b> — to <b>nabounar@sr.edu.sa</b>,
         CC <b>m.elmahdy@sr.edu.sa</b>, with a link to this page.
         Also sent automatically every <b>Sunday at 08:00</b> for that same week.
@@ -976,7 +997,7 @@ function brandFallback(img){
 <footer class="sru-footer sru-tech-bg-dark">
   <div class="in">
     <div class="sru-support"><b>For Support:</b> Dial <span class="star">*</span> <span class="or">or</span> Send email to: <a href="mailto:servicedesk@sr.edu.sa">servicedesk@sr.edu.sa</a></div>
-    <div class="footer-version">ICTD Weekly Status Report — Version 6.0 · Sulaiman Al Rajhi University</div>
+    <div class="footer-version">ICTD Weekly Status Report — Version 6.1 · Sulaiman Al Rajhi University</div>
     <a class="sru-itoc" href="https://ictsru.github.io/ITOC/#forms" target="_blank" rel="noopener noreferrer"
        aria-label="ITOC — IT Operations Center, Forms" title="ITOC — IT Operations Center · Forms">
       <img src="https://ictsru.github.io/brand/logos/itoc-logo.png" data-fallback="itoc" onerror="brandFallback(this)" alt="ITOC — IT Operations Center">
@@ -1026,6 +1047,140 @@ function nameOptions(selected){
 }
 const RAG_DOT = {Green:'dot-green', Amber:'dot-amber', Red:'dot-red'};
 const RAG_LABEL = {Green:'🟢 On Track', Amber:'🟡 At Risk', Red:'🔴 Critical'};
+
+/* ============================================================
+   v6.1 — Arabic ⇄ English (i18n + RTL)
+   One dictionary; applyLang() fills every [data-i18n]* element and
+   flips dir. Dynamic strings go through t(). English values match the
+   original markup exactly, so switching back is lossless.
+   ============================================================ */
+var I18N = {
+  'nav.submit':{en:'Submit Report',ar:'رفع التقرير'},
+  'nav.dashboard':{en:'Dashboard',ar:'لوحة المعلومات'},
+  'nav.compiled':{en:'Compiled Report (for CIO)',ar:'التقرير المجمّع (للرئيس)'},
+  'nav.admin':{en:'Access & Permissions',ar:'الصلاحيات'},
+  'submit.title':{en:"Submit Your Sector's Weekly Update",ar:'ارفع التحديث الأسبوعي لقطاعك'},
+  'submit.hint':{en:'Each sector manager fills this once per week. Submitting again for the same sector and week overwrites your previous entry.',ar:'يملأ كل مدير قطاع هذا النموذج مرة واحدة أسبوعيًا. إعادة الإرسال لنفس القطاع والأسبوع تستبدل إدخالك السابق.'},
+  'submit.week':{en:'Week Of (Sunday)',ar:'الأسبوع (الأحد)'},
+  'submit.sector':{en:'Sector',ar:'القطاع'},
+  'submit.load':{en:'Load My Existing Entry',ar:'تحميل إدخالي الحالي'},
+  'submit.status':{en:'Overall Status',ar:'الحالة العامة'},
+  'rag.green':{en:'🟢 On Track',ar:'🟢 على المسار'},
+  'rag.amber':{en:'🟡 At Risk',ar:'🟡 في خطر'},
+  'rag.red':{en:'🔴 Critical',ar:'🔴 حرِج'},
+  'submit.autostatus':{en:'Set automatically from the number of sessions: 1 or fewer = Critical · 2–3 = At Risk · more than 3 = On Track',ar:'تُحدَّد تلقائيًا من عدد الجلسات: جلسة أو أقل = حرِج · 2–3 = في خطر · أكثر من 3 = على المسار'},
+  'submit.activities':{en:'Key Activities This Week',ar:'أبرز الأنشطة هذا الأسبوع'},
+  'submit.issues':{en:'Issues / Risk',ar:'المشكلات / المخاطر'},
+  'submit.support':{en:'Support Needed From CIO / Other Sectors',ar:'الدعم المطلوب من الرئيس / القطاعات الأخرى'},
+  'submit.nextweek':{en:'Tasks (Key Activities) for Next Week',ar:'مهام (أنشطة رئيسية) للأسبوع القادم'},
+  'submit.sessions':{en:'Coffee with IT — Sessions',ar:'قهوة مع تقنية المعلومات — الجلسات'},
+  'submit.sessions.hint':{en:'Sessions delivered this week. Add one entry per session.',ar:'الجلسات المقدَّمة هذا الأسبوع. أضف إدخالًا لكل جلسة.'},
+  'submit.events':{en:'Event Support',ar:'دعم الفعاليات'},
+  'submit.events.hint':{en:'Events supported this week. Add one entry per event.',ar:'الفعاليات المدعومة هذا الأسبوع. أضف إدخالًا لكل فعالية.'},
+  'submit.attachments':{en:'Attachments',ar:'المرفقات'},
+  'submit.attachments.hint':{en:'Upload supporting files (reports, screenshots, evidence). Add a short brief for each so the CIO knows what it is.',ar:'ارفع الملفات الداعمة (تقارير، لقطات شاشة، أدلة). أضف وصفًا موجزًا لكل ملف ليعرف الرئيس محتواه.'},
+  'submit.submittedby':{en:'Submitted By',ar:'مُقدِّم التقرير'},
+  'submit.ph.activities':{en:'e.g., Completed firmware upgrade on core switches',ar:'مثال: إكمال ترقية البرامج الثابتة للمحولات الأساسية'},
+  'submit.ph.issues':{en:'e.g., Vendor delay on replacement parts',ar:'مثال: تأخّر المورّد في قطع الغيار'},
+  'submit.ph.support':{en:'e.g., Budget approval for backup license renewal',ar:'مثال: اعتماد ميزانية لتجديد ترخيص النسخ الاحتياطي'},
+  'submit.ph.nextweek':{en:'e.g., Patch core servers',ar:'مثال: تحديث الخوادم الأساسية'},
+  'btn.additem':{en:'Add item',ar:'إضافة عنصر'},
+  'btn.addsession':{en:'Add session',ar:'إضافة جلسة'},
+  'btn.addevent':{en:'Add event',ar:'إضافة فعالية'},
+  'btn.addattach':{en:'Add attachment',ar:'إضافة مرفق'},
+  'btn.save':{en:'Save Report',ar:'حفظ التقرير'},
+  'btn.refresh':{en:'Refresh',ar:'تحديث'},
+  'btn.print':{en:'Print / Save as PDF',ar:'طباعة / حفظ PDF'},
+  'btn.email':{en:'Email Report to CIO',ar:'إرسال التقرير للرئيس'},
+  'dash.trend.title':{en:'Status Trend (last weeks)',ar:'اتجاه الحالة (الأسابيع الأخيرة)'},
+  'dash.trend.hint':{en:'Overall RAG status per sector, most recent week first.',ar:'الحالة العامة لكل قطاع، الأحدث أولًا.'},
+  'dash.title':{en:'Weekly Dashboard',ar:'اللوحة الأسبوعية'},
+  'dash.hint':{en:'Live status across all sectors for the selected week.',ar:'الحالة المباشرة لجميع القطاعات للأسبوع المحدد.'},
+  'dash.viewing':{en:'Viewing week:',ar:'عرض أسبوع:'},
+  'dash.coffee':{en:'Coffee with IT — Sessions by Audience',ar:'قهوة مع تقنية المعلومات — الجلسات حسب الفئة'},
+  'dash.sectorstatus':{en:'Sector Status',ar:'حالة القطاعات'},
+  'compiled.title':{en:'Compiled Report',ar:'التقرير المجمّع'},
+  'compiled.hint':{en:'Select the week to compile into a CIO-ready report, then print or export as PDF — or email the full report straight to the CIO.',ar:'اختر الأسبوع لتجميعه في تقرير جاهز للرئيس، ثم اطبعه أو صدّره PDF — أو أرسل التقرير كاملًا للرئيس مباشرة.'},
+  'compiled.emailnote':{
+    en:'Sends the full report — in the email and as a <b>PDF attachment</b> — to <b>nabounar@sr.edu.sa</b>, CC <b>m.elmahdy@sr.edu.sa</b>, with a link to this page. Also sent automatically every <b>Sunday at 08:00</b> for that same week.',
+    ar:'يرسل التقرير كاملًا — في البريد وكمرفق <b>PDF</b> — إلى <b dir="ltr">nabounar@sr.edu.sa</b>، ونسخة إلى <b dir="ltr">m.elmahdy@sr.edu.sa</b>، مع رابط لهذه الصفحة. ويُرسَل تلقائيًا كل <b>أحد الساعة 08:00</b> لنفس الأسبوع.'},
+  // dynamic (dashboard cards / trend / compiled)
+  'card.activities':{en:'Activities:',ar:'الأنشطة:'},
+  'card.issues':{en:'Issues / Risk:',ar:'المشكلات / المخاطر:'},
+  'card.nextweek':{en:'Next Week:',ar:'الأسبوع القادم:'},
+  'card.events':{en:'Events Supported:',ar:'الفعاليات المدعومة:'},
+  'card.sessions':{en:'Sessions Held:',ar:'الجلسات المنعقدة:'},
+  'card.attachments':{en:'Attachments:',ar:'المرفقات:'},
+  'card.submittedby':{en:'Submitted by',ar:'قدّمه'},
+  'card.nosub':{en:'No submission yet for this week',ar:'لا يوجد إدخال لهذا الأسبوع بعد'},
+  'trend.week':{en:'Week',ar:'الأسبوع'},
+  'trend.nodata':{en:'No data yet',ar:'لا توجد بيانات بعد'},
+  'card.nosubshort':{en:'No submission',ar:'لا يوجد إدخال'},
+  'report.title':{en:'ICTD Status Report',ar:'تقرير حالة تقنية المعلومات'},
+  'report.summary':{en:'{n} of {N} sectors submitted',ar:'{n} من {N} قطاعًا قدّمت'},
+  'chip.notsub':{en:'Not submitted',ar:'لم يُقدَّم'},
+  'row.status':{en:'Overall Status',ar:'الحالة العامة'},
+  'row.activities':{en:'Key Activities',ar:'أبرز الأنشطة'},
+  'row.issues':{en:'Issues / Risk',ar:'المشكلات / المخاطر'},
+  'row.support':{en:'Support Needed',ar:'الدعم المطلوب'},
+  'row.nextweek':{en:'Tasks for Next Week',ar:'مهام الأسبوع القادم'},
+  'row.events':{en:'Event Support',ar:'دعم الفعاليات'},
+  'row.sessions':{en:'Coffee with IT — Sessions',ar:'قهوة مع تقنية المعلومات — الجلسات'},
+  'row.attachments':{en:'Attachments',ar:'المرفقات'},
+  'row.submittedby':{en:'Submitted By',ar:'مُقدِّم التقرير'},
+  'empty.nosub':{en:'No submission received yet from {s} for this week.',ar:'لم يُستلم أي إدخال من {s} لهذا الأسبوع بعد.'},
+  'tip.goto':{en:'Go to {s}',ar:'الانتقال إلى {s}'},
+  'session.one':{en:'session',ar:'جلسة'},
+  'session.many':{en:'sessions',ar:'جلسة'},
+  'attach.open':{en:'open file',ar:'فتح الملف'},
+  'toast.loaded':{en:'Loaded existing entry.',ar:'تم تحميل الإدخال الحالي.'}
+};
+
+var LANG = 'en';
+function t(key, vars){
+  var e = I18N[key];
+  var s = e ? (e[LANG] != null ? e[LANG] : e.en) : key;
+  if(vars){ Object.keys(vars).forEach(function(k){ s = s.replace(new RegExp('\\{'+k+'\\}','g'), vars[k]); }); }
+  return s;
+}
+function ragLabel(st){ return t('rag.' + String(st).toLowerCase()); }
+
+function applyLang(lang){
+  LANG = (lang === 'ar') ? 'ar' : 'en';
+  var root = document.documentElement;
+  root.setAttribute('lang', LANG);
+  root.setAttribute('dir', LANG === 'ar' ? 'rtl' : 'ltr');
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n')];
+    if(v) el.textContent = (v[LANG] != null ? v[LANG] : v.en);
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n-html')];
+    if(v) el.innerHTML = (v[LANG] != null ? v[LANG] : v.en);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n-ph')];
+    if(!v) return;
+    var txt = (v[LANG] != null ? v[LANG] : v.en);
+    if(el.hasAttribute('data-placeholder')) el.setAttribute('data-placeholder', txt);
+    if('placeholder' in el) el.placeholder = txt;
+    // refresh any already-rendered rows that cloned the old placeholder
+    el.querySelectorAll('input[placeholder]').forEach(function(inp){ inp.placeholder = txt; });
+  });
+  var lb = document.querySelector('#btn-lang .lbl');
+  if(lb) lb.textContent = (LANG === 'ar' ? 'English' : 'العربية');
+  try{ localStorage.setItem('ictd-lang', LANG); }catch(e){}
+  // re-render whichever dynamic view is open, so its generated labels flip too
+  try{
+    var active = document.querySelector('.view.active');
+    if(active){
+      if(active.id === 'view-dashboard' && typeof loadDashboard === 'function') loadDashboard();
+      else if(active.id === 'view-compiled' && typeof renderCompiledReport === 'function'){ var rw=document.getElementById('report-week'); if(rw&&rw.value) renderCompiledReport(rw.value); }
+      else if(active.id === 'view-admin' && typeof renderAdminUsers === 'function' && ADMIN_STATE && ADMIN_STATE.loaded) renderAdminUsers();
+    }
+  }catch(e){}
+  if(window.lucide) lucide.createIcons();
+}
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -1433,7 +1588,7 @@ function updateAutoStatus(){
   const n = getSessions().length;
   const st = computeCoffeeStatus(n);
   pill.className = 'auto-pill ' + RAG_PILL[st];
-  pill.textContent = RAG_LABEL[st] + '  ·  ' + n + (n === 1 ? ' session' : ' sessions');
+  pill.textContent = ragLabel(st) + '  ·  ' + n + ' ' + (n === 1 ? t('session.one') : t('session.many'));
 }
 
 setSessions([]);
@@ -1884,7 +2039,7 @@ document.getElementById('btn-load').addEventListener('click', async ()=>{
   populateSubmittedBy(data.submittedBy || '');
   const ragInput = document.querySelector('#rag-choice input[value="'+data.status+'"]');
   if(ragInput){ ragInput.checked = true; ragInput.dispatchEvent(new Event('change')); }
-  toast('Loaded existing entry.');
+  toast(t('toast.loaded'));
 });
 
 // DASHBOARD
@@ -1953,22 +2108,22 @@ async function renderStatusGrid(week){
       card.innerHTML = `
         <div class="head" style="background:${s.color}"><i data-lucide="${s.icon}"></i> ${s.label}</div>
         <div class="body">
-          <span class="rag-pill ${RAG_PILL[data.status]}">${RAG_LABEL[data.status]}</span>
+          <span class="rag-pill ${RAG_PILL[data.status]}">${ragLabel(data.status)}</span>
           ${s.code!=='CoffeeIT' ? `
-          <div><b>Activities:</b> ${escapeHtml(data.activities)||'—'}</div>
-          <div class="${hasRisk(data.issues) ? 'risk-flag' : ''}"><b>Issues / Risk:</b> ${escapeHtml(data.issues)||'—'}</div>
-          <div><b>Next Week:</b> ${escapeHtml(data.nextWeekTasks)||'—'}</div>` : ''}
+          <div><b>${t('card.activities')}</b> ${escapeHtml(data.activities)||'—'}</div>
+          <div class="${hasRisk(data.issues) ? 'risk-flag' : ''}"><b>${t('card.issues')}</b> ${escapeHtml(data.issues)||'—'}</div>
+          <div><b>${t('card.nextweek')}</b> ${escapeHtml(data.nextWeekTasks)||'—'}</div>` : ''}
           ${s.code==='Events' ? (()=>{ const evs=parseStoredEvents(data.events); return `
-          <div><b>Events Supported:</b> ${evs.length || 0}</div>
+          <div><b>${t('card.events')}</b> ${evs.length || 0}</div>
           ${evs.length ? `<div class="event-list">${renderEvents(data.events)}</div>` : ''}`; })() : ''}
-          ${s.code==='CoffeeIT' ? `<div><b>Sessions Held:</b> ${parseStoredSessions(data.sessions).length || 0}</div>` : ''}
-          <div><b>Attachments:</b> ${parseStoredAttachments(data.attachments).length || 0}</div>
-          <div class="meta">Submitted by ${escapeHtml(data.submittedBy)||'—'}</div>
+          ${s.code==='CoffeeIT' ? `<div><b>${t('card.sessions')}</b> ${parseStoredSessions(data.sessions).length || 0}</div>` : ''}
+          <div><b>${t('card.attachments')}</b> ${parseStoredAttachments(data.attachments).length || 0}</div>
+          <div class="meta">${t('card.submittedby')} ${escapeHtml(data.submittedBy)||'—'}</div>
         </div>`;
     } else {
       card.innerHTML = `
         <div class="head" style="background:${s.color}"><i data-lucide="${s.icon}"></i> ${s.label}</div>
-        <div class="missing"><i data-lucide="inbox" style="width:22px;height:22px;opacity:.4;display:block;margin:0 auto 6px;"></i>No submission yet for this week</div>`;
+        <div class="missing"><i data-lucide="inbox" style="width:22px;height:22px;opacity:.4;display:block;margin:0 auto 6px;"></i>${t('card.nosub')}</div>`;
     }
     grid.appendChild(card);
   }
@@ -1978,20 +2133,20 @@ async function renderStatusGrid(week){
 async function renderTrend(weeks){
   const recent = weeks.slice(0,8);
   const table = document.getElementById('trend-table');
-  let html = '<tr><th style="text-align:left;">Week</th>' +
-    SECTORS.map(s=>`<th><button type="button" class="trend-link" data-sector="${s.code}" title="Go to ${s.label}">${s.label}</button></th>`).join('') +
+  let html = '<tr><th style="text-align:start;">'+t('trend.week')+'</th>' +
+    SECTORS.map(s=>`<th><button type="button" class="trend-link" data-sector="${s.code}" title="${t('tip.goto',{s:s.label})}">${s.label}</button></th>`).join('') +
     '</tr>';
   for(const w of recent){
     html += `<tr><td class="week-label">${formatWeekLabel(w)}</td>`;
     for(const s of SECTORS){
       const data = await getReport(w, s.code);
       const dot = data ? RAG_DOT[data.status] : 'dot-none';
-      const tip = `${s.label} — ${formatWeekLabel(w)} — ${data?RAG_LABEL[data.status]:'No submission'}`;
+      const tip = `${s.label} — ${formatWeekLabel(w)} — ${data?ragLabel(data.status):t('card.nosubshort')}`;
       html += `<td><button type="button" class="dot-btn" data-sector="${s.code}" data-week="${w}" title="${tip}" aria-label="${tip}"><span class="dot ${dot}"></span></button></td>`;
     }
     html += '</tr>';
   }
-  table.innerHTML = html || '<tr><td>No data yet</td></tr>';
+  table.innerHTML = html || ('<tr><td>'+t('trend.nodata')+'</td></tr>');
 }
 
 document.getElementById('btn-refresh').addEventListener('click', async ()=>{
@@ -2021,21 +2176,21 @@ async function renderCompiledReport(week){
   });
   const chips = ordered.map(({s,d})=>{
     const mark = d
-      ? `<span class="chip-mark ok" title="Report submitted">&#10003;</span>`
-      : `<span class="chip-mark no" title="No report submitted">&#10007;</span>`;
+      ? `<span class="chip-mark ok">&#10003;</span>`
+      : `<span class="chip-mark no">&#10007;</span>`;
     const state = d
-      ? `<span class="chip-state ${RAG_PILL[d.status]}">${RAG_LABEL[d.status]}</span>`
-      : `<span class="chip-state pill-none">Not submitted</span>`;
+      ? `<span class="chip-state ${RAG_PILL[d.status]}">${ragLabel(d.status)}</span>`
+      : `<span class="chip-state pill-none">${t('chip.notsub')}</span>`;
     return `
-      <a class="chip ${d ? '' : 'chip-missing'}" href="#sec-${s.code}" title="Go to ${s.label}">
+      <a class="chip ${d ? '' : 'chip-missing'}" href="#sec-${s.code}" title="${t('tip.goto',{s:s.label})}">
         <span class="chip-name" style="background:${s.color}">${s.label}</span>
         <span class="chip-foot">${mark}${state}</span>
       </a>`;
   }).join('');
-  const summary = `${submittedCount} of ${SECTORS.length} sectors submitted`;
+  const summary = t('report.summary', {n:submittedCount, N:SECTORS.length});
   let html = `
     <div class="report-cover">
-      <h1>ICTD Status Report</h1>
+      <h1>${t('report.title')}</h1>
       <div style="font-size:13.5px; font-weight:700; opacity:.82; position:relative; z-index:1;">${formatWeekLabel(week)}</div>
       <div class="cover-summary"><span class="cover-count">${submittedCount}/${SECTORS.length}</span> ${summary}</div>
       <div class="chips">${chips}</div>
@@ -2050,19 +2205,19 @@ async function renderCompiledReport(week){
     const isDedicated = (s.code==='CoffeeIT');
     if(data){
       html += `
-        <div class="row"><b>Overall Status</b><span class="rag-pill ${RAG_PILL[data.status]}">${RAG_LABEL[data.status]}</span></div>
+        <div class="row"><b>${t('row.status')}</b><span class="rag-pill ${RAG_PILL[data.status]}">${ragLabel(data.status)}</span></div>
         ${!isDedicated ? `
-        <div class="row"><b>Key Activities</b><span>${escapeHtml(data.activities)||'—'}</span></div>
-        <div class="row ${hasRisk(data.issues) ? 'risk-flag' : ''}"><b>Issues / Risk</b><span>${escapeHtml(data.issues)||'—'}</span></div>
-        <div class="row"><b>Support Needed</b><span>${escapeHtml(data.support)||'—'}</span></div>
-        <div class="row"><b>Tasks for Next Week</b><span>${escapeHtml(data.nextWeekTasks)||'—'}</span></div>` : ''}
-        ${s.code==='Events' ? `<div class="row"><b>Event Support</b><span>${renderEvents(data.events)}</span></div>` : ''}
-        ${s.code==='CoffeeIT' ? `<div class="row"><b>Coffee with IT — Sessions</b><span>${renderSessions(data.sessions)}</span></div>` : ''}
-        <div class="row"><b>Attachments</b><span>${renderAttachLinks(data.attachments)}</span></div>
-        <div class="row"><b>Submitted By</b><span>${escapeHtml(data.submittedBy)||'—'}</span></div>`;
+        <div class="row"><b>${t('row.activities')}</b><span>${escapeHtml(data.activities)||'—'}</span></div>
+        <div class="row ${hasRisk(data.issues) ? 'risk-flag' : ''}"><b>${t('row.issues')}</b><span>${escapeHtml(data.issues)||'—'}</span></div>
+        <div class="row"><b>${t('row.support')}</b><span>${escapeHtml(data.support)||'—'}</span></div>
+        <div class="row"><b>${t('row.nextweek')}</b><span>${escapeHtml(data.nextWeekTasks)||'—'}</span></div>` : ''}
+        ${s.code==='Events' ? `<div class="row"><b>${t('row.events')}</b><span>${renderEvents(data.events)}</span></div>` : ''}
+        ${s.code==='CoffeeIT' ? `<div class="row"><b>${t('row.sessions')}</b><span>${renderSessions(data.sessions)}</span></div>` : ''}
+        <div class="row"><b>${t('row.attachments')}</b><span>${renderAttachLinks(data.attachments)}</span></div>
+        <div class="row"><b>${t('row.submittedby')}</b><span>${escapeHtml(data.submittedBy)||'—'}</span></div>`;
     } else {
       anyMissing = true;
-      html += `<div class="empty-note"><i data-lucide="alert-circle"></i> No submission received yet from ${s.label} for this week.</div>`;
+      html += `<div class="empty-note"><i data-lucide="alert-circle"></i> ${t('empty.nosub',{s:s.label})}</div>`;
     }
     html += `</div></div>`;
   }
@@ -2214,7 +2369,7 @@ function renderAttachLinks(text){
   const items = parseStoredAttachments(text);
   if(!items.length) return '—';
   return items.map((a,i)=>
-    `${i+1}. ${escapeHtml(a.brief)} — <a href="${escapeAttrText(a.url)}" target="_blank" style="color:var(--blue);font-weight:700;">open file</a>`
+    `${i+1}. ${escapeHtml(a.brief)} — <a href="${escapeAttrText(a.url)}" target="_blank" style="color:var(--blue);font-weight:700;">${t("attach.open")}</a>`
   ).join('<br>');
 }
 
@@ -2261,6 +2416,18 @@ if(window.lucide) lucide.createIcons();
       }
     });
   }catch(e){}
+})();
+
+/* ============================================================
+   v6.1 — language toggle + initial language
+   ============================================================ */
+(function(){
+  var saved = null;
+  try{ saved = localStorage.getItem('ictd-lang'); }catch(e){}
+  applyLang(saved === 'ar' ? 'ar' : 'en');   // English is the app's base
+
+  var btn = document.getElementById('btn-lang');
+  if(btn) btn.addEventListener('click', function(){ applyLang(LANG === 'ar' ? 'en' : 'ar'); });
 })();
 </script>
 </body>
