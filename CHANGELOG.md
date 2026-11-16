@@ -1,8 +1,5 @@
 # Changelog
 
-## v6.1 — 2026-11-15
-- v6.1 — Arabic ⇄ English switch (i18n + RTL): header toggle flips the whole UI, dynamic dashboard/report labels included; choice persisted
-
 ## v6.0 — 2026-11-15
 - v6.0 — Access & Permissions panel (admins only): manage AllowedUsers roles/active and SectorOwners assignments from inside the app
 
