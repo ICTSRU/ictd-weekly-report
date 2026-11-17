@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.6 — 2026-11-17
+- v6.6 — clear the Submit form when the sector or week changes, and when Load finds no entry, so one sector's data no longer lingers under another
+
 ## v6.5 — 2026-11-17
 - v6.5 — view-only sectors fully locked (disabled fieldset) + clear top banner; one-time authorizeMail() for the Request-access email
 

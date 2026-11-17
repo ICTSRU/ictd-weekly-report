@@ -4,7 +4,7 @@
 <meta name="version" content="<?= version ?>">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ICTD Weekly Status Report — v6.5</title>
+<title>ICTD Weekly Status Report — v6.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -789,7 +789,7 @@ function brandFallback(img){
   <div class="in">
   <div class="brand">
     <div class="brand-text">
-      <h1>ICTD Weekly Status Report <span class="version-badge">v6.5</span></h1>
+      <h1>ICTD Weekly Status Report <span class="version-badge">v6.6</span></h1>
       <p class="sub">Sulaiman Al Rajhi University — Executive Directorate of Communications &amp; Information Technology</p>
     </div>
   </div>
@@ -1010,7 +1010,7 @@ function brandFallback(img){
 <footer class="sru-footer sru-tech-bg-dark">
   <div class="in">
     <div class="sru-support"><b>For Support:</b> Dial <span class="star">*</span> <span class="or">or</span> Send email to: <a href="mailto:servicedesk@sr.edu.sa">servicedesk@sr.edu.sa</a></div>
-    <div class="footer-version">ICTD Weekly Status Report — Version 6.5 · Sulaiman Al Rajhi University</div>
+    <div class="footer-version">ICTD Weekly Status Report — Version 6.6 · Sulaiman Al Rajhi University</div>
     <a class="sru-itoc" href="https://ictsru.github.io/ITOC/#forms" target="_blank" rel="noopener noreferrer"
        aria-label="ITOC — IT Operations Center, Forms" title="ITOC — IT Operations Center · Forms">
       <img src="https://ictsru.github.io/brand/logos/itoc-logo.png" data-fallback="itoc" onerror="brandFallback(this)" alt="ITOC — IT Operations Center">
@@ -1547,7 +1547,11 @@ function toggleCoffeeSection(){
   document.getElementById('status-label').textContent = autoStatus ? 'Overall Status (automatic)' : 'Overall Status';
   if(autoStatus) updateAutoStatus();
 }
-document.getElementById('f-sector').addEventListener('change', toggleCoffeeSection);
+// Changing the sector or the week means a different entry — clear the form so
+// the previously shown data doesn't look like it belongs to the new selection.
+function onSectorOrWeekChange(){ resetForm(); toggleCoffeeSection(); }
+document.getElementById('f-sector').addEventListener('change', onSectorOrWeekChange);
+document.getElementById('f-week').addEventListener('change', onSectorOrWeekChange);
 toggleCoffeeSection();
 
 document.querySelectorAll('.btn-add').forEach(btn=>{
@@ -1946,7 +1950,10 @@ document.getElementById('btn-submit').addEventListener('click', async ()=>{
   }
 });
 
-function clearFormAfterSave(){
+// Blank every report field. Used after a save, when the sector/week changes,
+// and when Load finds no entry — so one sector's data never lingers on screen
+// while another sector is selected.
+function resetForm(){
   ['list-activities','list-issues','list-support','list-nexttasks'].forEach(id=>setListValues(id, [], true));
   setEvents([], true);
   setSessions([], true);
@@ -1954,6 +1961,9 @@ function clearFormAfterSave(){
   populateSubmittedBy('');
   document.querySelectorAll('#rag-choice input').forEach(i=>{ i.checked = false; });
   document.querySelectorAll('#rag-choice label').forEach(l=>l.classList.remove('sel-green','sel-amber','sel-red'));
+}
+function clearFormAfterSave(){
+  resetForm();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -1961,7 +1971,7 @@ document.getElementById('btn-load').addEventListener('click', async ()=>{
   const week = document.getElementById('f-week').value;
   const sector = document.getElementById('f-sector').value;
   const data = await getReport(week, sector);
-  if(!data){ toast('No existing entry for this sector/week.'); return; }
+  if(!data){ resetForm(); toast('No existing entry for this sector / week — the form is blank.'); return; }
   setListValues('list-activities', parseStoredList(data.activities));
   setListValues('list-issues', parseStoredList(data.issues));
   setListValues('list-support', parseStoredList(data.support));
