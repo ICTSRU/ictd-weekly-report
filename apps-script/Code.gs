@@ -25,7 +25,7 @@
 /* ▼▼▼ CONFIG — change per platform ▼▼▼ */
 const APP_NAME       = 'التقرير الأسبوعي لحالة تقنية المعلومات';
 const APP_NAME_EN    = 'ICTD Weekly Status Report';
-const APP_VERSION    = '6.2';
+const APP_VERSION    = '6.3';
 const ALLOWED_DOMAIN = 'sr.edu.sa';
 const FAVICON_URL    = 'https://ictsru.github.io/ITOC/assets/itoc-logo.png';
 
@@ -94,7 +94,7 @@ const DEFAULT_SECTOR_OWNERS = [
   ['SOC',       'SOC',             'n.nawaz@sr.edu.sa, a.elnadi@sr.edu.sa', 'matrix: n.nawaz + Atef Elnadi'],
   ['DSSC',      'DSSC',            'm.omar@sr.edu.sa',      'matrix: m.omar'],
   ['AAU',       'AAU',             'm.saleh@sr.edu.sa',     'matrix: m.saleh'],
-  ['FemaleSection', 'Female Section', 'ALL',                'Female Section — restrict owners via the Access panel'],
+  ['FemaleSection', 'Female Section', 's.albusayli@sr.edu.sa, i.almutairi@sr.edu.sa, a.alolayan@sr.edu.sa', 'Female Section — 3 owners'],
   ['Events',    'Event Support',   'ALL',                   'matrix: All'],
   ['CoffeeIT',  'Coffee with IT',  'ALL',                   'matrix: All'],
   ['ITOC',      'ITOC',            'm.elmahdy@sr.edu.sa',   'matrix: mahdy (was M. ElMahdy)'],
@@ -491,8 +491,16 @@ function apiAdminListUsers() {
     if (list.indexOf('ALL') !== -1) return;
     list.forEach(function (e) { (sectorsOf[e] = sectorsOf[e] || []).push(code); });
   });
+  // 'all' must reflect the LIVE sheet, not the default config — a sector that
+  // was restricted to specific owners in the sheet (e.g. Female Section) would
+  // otherwise still render as a locked "everyone" chip.
   var sectorMeta = [];
-  DEFAULT_SECTOR_OWNERS.forEach(function (r) { sectorMeta.push({ code: r[0], label: r[1], all: String(r[2]).toUpperCase() === 'ALL' }); });
+  DEFAULT_SECTOR_OWNERS.forEach(function (r) {
+    var code = r[0];
+    var live = owners[code];
+    var isAll = live ? (live.indexOf('ALL') !== -1) : (String(r[2]).toUpperCase() === 'ALL');
+    sectorMeta.push({ code: code, label: r[1], all: isAll });
+  });
   // include any sector present in the tab but not in the default list
   Object.keys(owners).forEach(function (code) {
     if (!sectorMeta.some(function (s) { return s.code === code; })) sectorMeta.push({ code: code, label: code, all: owners[code].indexOf('ALL') !== -1 });

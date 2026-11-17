@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.3 — 2026-11-17
+- v6.3 — Access panel reads sector 'everyone vs specific' from the live sheet, so a restricted sector (Female Section) shows its real owners and is manageable
+
 ## v6.2 — 2026-11-17
 - v6.2 — Access panel: change a person's role directly from a Tier dropdown (Admin/Editor/Viewer); Viewer clears owned sectors
 
