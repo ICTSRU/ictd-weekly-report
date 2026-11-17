@@ -25,7 +25,7 @@
 /* ▼▼▼ CONFIG — change per platform ▼▼▼ */
 const APP_NAME       = 'التقرير الأسبوعي لحالة تقنية المعلومات';
 const APP_NAME_EN    = 'ICTD Weekly Status Report';
-const APP_VERSION    = '6.6';
+const APP_VERSION    = '6.7';
 const ALLOWED_DOMAIN = 'sr.edu.sa';
 const FAVICON_URL    = 'https://ictsru.github.io/ITOC/assets/itoc-logo.png';
 
@@ -35,6 +35,7 @@ const N8N_SUBMIT  = N8N_BASE + '/ictd-submit';
 const N8N_DATA    = N8N_BASE + '/ictd-data';
 const N8N_UPLOAD  = N8N_BASE + '/ictd-upload';
 const N8N_MAILER  = N8N_BASE + '/ictd-report-email';
+const N8N_ACCESS_REQUEST = N8N_BASE + '/ictd-access-request';   // emails the owner when a user requests access
 const N8N_TIMEOUT_NOTE = 'UrlFetchApp has a fixed timeout; large uploads may need a retry.';
 
 /* Access log */
@@ -598,9 +599,10 @@ function apiAdminSetSectors(email, codes) {
 
 /* --------------------- Request access (Denied page) ----------------- *
  * A signed-in @sr.edu.sa user who is NOT on the allow list can ask to be
- * added. Emails the owner with their (authenticated) address. Reachable
- * from the Denied page without being on the list — but still domain-gated,
- * de-duplicated, and it never grants anything by itself.
+ * added. The email is sent through n8n (UrlFetchApp) — the SAME channel the
+ * app already uses for the weekly report — so NO extra Google authorization
+ * is ever required. Domain-gated, de-duplicated, and it never grants access
+ * by itself.
  * ------------------------------------------------------------------- */
 function requestAccess() {
   var email = currentEmail_();
@@ -614,7 +616,7 @@ function requestAccess() {
 
   var when = Utilities.formatDate(new Date(), LOG_TIMEZONE, 'yyyy-MM-dd HH:mm');
   var subject = 'طلب صلاحية دخول — ' + APP_NAME_EN;
-  var body =
+  var message =
     'طلب دخول جديد إلى منصة «' + APP_NAME + '» (' + APP_NAME_EN + ').\n\n' +
     'البريد الجامعي: ' + email + '\n' +
     'الوقت: ' + when + ' (Asia/Riyadh)\n\n' +
@@ -622,33 +624,13 @@ function requestAccess() {
     '— — —\n' +
     'New access request for ' + APP_NAME_EN + '.\nEmail: ' + email + '\nTime: ' + when + ' (Asia/Riyadh)\n' +
     'Add from the Access & Permissions page, or the AllowedUsers sheet.';
-  try {
-    MailApp.sendEmail({ to: OWNER_EMAILS.join(','), subject: subject, body: body, replyTo: email, name: APP_NAME_EN });
-  } catch (e) {
-    console.error('requestAccess mail failed: ' + e);
-    throw new Error('تعذّر إرسال الطلب حاليًا، يرجى المحاولة لاحقًا.');
-  }
+
+  // n8nPost_ throws on a non-2xx response, which the Denied page surfaces.
+  n8nPost_(N8N_ACCESS_REQUEST, { email: email, time: when, subject: subject, message: message, replyTo: email });
+
   cache.put(key, '1', 30 * 60);
   try { logAccess_(email, 'request'); } catch (e) {}
   return { ok: true };
-}
-
-/**
- * RUN ONCE from the editor (or the sheet menu) to grant the send-mail
- * permission that requestAccess() needs. Sending email is a new capability
- * added in v6.4, so Google must be authorized for it once by the owner.
- * After approving the prompt, the "Request access" button works for everyone
- * (the web app runs as the owner).
- */
-function authorizeMail() {
-  MailApp.sendEmail({
-    to: OWNER_EMAILS.join(','),
-    subject: 'تم تفعيل إشعارات طلب الصلاحية — ' + APP_NAME_EN,
-    body: 'تم منح صلاحية إرسال البريد بنجاح. زر «اطلب صلاحية الدخول» في صفحة الوصول يعمل الآن.\n\n' +
-          'Mail permission granted. The "Request access" button on the Denied page now works.'
-  });
-  try { SpreadsheetApp.getActive().toast('تم منح صلاحية البريد. زر طلب الصلاحية يعمل الآن.', APP_NAME_EN, 8); } catch (e) {}
-  return 'OK — mail authorized; request-access emails will now send.';
 }
 
 /* ---------------------------- Access log ---------------------------- */
@@ -728,7 +710,6 @@ function onOpen() {
     SpreadsheetApp.getUi().createMenu(APP_NAME_EN)
       .addItem('إعداد قائمة المصرّح لهم (AllowedUsers)', 'setupAccessList')
       .addItem('إعداد مصفوفة صلاحيات القطاعات (SectorOwners)', 'setupSectorOwners')
-      .addItem('منح صلاحية البريد لطلب الدخول (Request access)', 'authorizeMail')
       .addSeparator()
       .addItem('ملخص سجل الدخول (30 يومًا)', 'showLogSummary')
       .addItem('حذف سجلات الدخول القديمة', 'purgeOldLogs')

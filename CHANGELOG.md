@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.7 — 2026-11-17
+- v6.7 — Request-access email now sent via n8n (Access Request Email workflow) instead of MailApp, so it needs no extra Google authorization
+
 ## v6.6 — 2026-11-17
 - v6.6 — clear the Submit form when the sector or week changes, and when Load finds no entry, so one sector's data no longer lingers under another
 
