@@ -25,7 +25,7 @@
 /* ▼▼▼ CONFIG — change per platform ▼▼▼ */
 const APP_NAME       = 'التقرير الأسبوعي لحالة تقنية المعلومات';
 const APP_NAME_EN    = 'ICTD Weekly Status Report';
-const APP_VERSION    = '6.3';
+const APP_VERSION    = '6.4';
 const ALLOWED_DOMAIN = 'sr.edu.sa';
 const FAVICON_URL    = 'https://ictsru.github.io/ITOC/assets/itoc-logo.png';
 
@@ -596,6 +596,43 @@ function apiAdminSetSectors(email, codes) {
   return { ok: true };
 }
 
+/* --------------------- Request access (Denied page) ----------------- *
+ * A signed-in @sr.edu.sa user who is NOT on the allow list can ask to be
+ * added. Emails the owner with their (authenticated) address. Reachable
+ * from the Denied page without being on the list — but still domain-gated,
+ * de-duplicated, and it never grants anything by itself.
+ * ------------------------------------------------------------------- */
+function requestAccess() {
+  var email = currentEmail_();
+  if (!isAllowed_(email)) throw new Error('غير متاح — هذه الخدمة لحسابات الجامعة (@' + ALLOWED_DOMAIN + ') فقط.');
+  if (accessStatus_(email) === 'ok') return { ok: true, already: true };   // already has access
+
+  // one request per user per 30 minutes
+  var cache = CacheService.getScriptCache();
+  var key = 'accessreq_' + email;
+  if (cache.get(key)) return { ok: true, throttled: true };
+
+  var when = Utilities.formatDate(new Date(), LOG_TIMEZONE, 'yyyy-MM-dd HH:mm');
+  var subject = 'طلب صلاحية دخول — ' + APP_NAME_EN;
+  var body =
+    'طلب دخول جديد إلى منصة «' + APP_NAME + '» (' + APP_NAME_EN + ').\n\n' +
+    'البريد الجامعي: ' + email + '\n' +
+    'الوقت: ' + when + ' (Asia/Riyadh)\n\n' +
+    'لإضافته: افتح صفحة «الصلاحيات» في التطبيق ثم «إضافة مستخدم»، أو أضف بريده إلى ورقة AllowedUsers.\n\n' +
+    '— — —\n' +
+    'New access request for ' + APP_NAME_EN + '.\nEmail: ' + email + '\nTime: ' + when + ' (Asia/Riyadh)\n' +
+    'Add from the Access & Permissions page, or the AllowedUsers sheet.';
+  try {
+    MailApp.sendEmail({ to: OWNER_EMAILS.join(','), subject: subject, body: body, replyTo: email, name: APP_NAME_EN });
+  } catch (e) {
+    console.error('requestAccess mail failed: ' + e);
+    throw new Error('تعذّر إرسال الطلب حاليًا، يرجى المحاولة لاحقًا.');
+  }
+  cache.put(key, '1', 30 * 60);
+  try { logAccess_(email, 'request'); } catch (e) {}
+  return { ok: true };
+}
+
 /* ---------------------------- Access log ---------------------------- */
 
 function logAccess_(email, result) {
@@ -610,7 +647,7 @@ function logAccess_(email, result) {
     const now = new Date();
     const f = p => Utilities.formatDate(now, LOG_TIMEZONE, p);
     getLogSheet_().appendRow([now, f('yyyy-MM-dd'), f('HH:mm:ss'), DAYS_AR_[Number(f('u')) % 7],
-      email, result === 'granted' ? 'دخول' : (result === 'not-listed' ? 'غير مدرج' : 'مرفوض'), APP_VERSION]);
+      email, result === 'granted' ? 'دخول' : (result === 'not-listed' ? 'غير مدرج' : (result === 'request' ? 'طلب صلاحية' : 'مرفوض')), APP_VERSION]);
   } catch (e) {
     console.error('logAccess_ failed: ' + e);
   }

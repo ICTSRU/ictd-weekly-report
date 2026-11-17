@@ -9,6 +9,13 @@
   img{height:56px;margin-bottom:12px} h1{font-size:1.2rem;color:#3a1464;margin:0 0 8px}
   p{color:#6b5a80;margin:0 0 6px;line-height:1.7} .en{direction:ltr;font-size:.85rem}
   .who{display:inline-block;direction:ltr;background:#f0ebf8;color:#3a1464;border-radius:4px;padding:2px 10px;margin:6px 0 10px;font-family:Arial,sans-serif;font-size:.9rem}
+  .req-btn{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:#501e8c;color:#fff;border:none;border-radius:24px;padding:11px 22px;font-family:inherit;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .15s,transform .15s}
+  .req-btn:hover:not(:disabled){background:#3a1464;transform:translateY(-1px)}
+  .req-btn:disabled{opacity:.6;cursor:default}
+  .req-btn .en{font-size:.78rem;opacity:.9;font-weight:400}
+  .req-msg{margin-top:12px;font-size:.9rem;line-height:1.7;min-height:1.2em}
+  .req-ok{color:#1f8a3b;font-weight:700}
+  .req-err{color:#c0272d;font-weight:700}
 </style>
 </head>
 <body>
@@ -19,8 +26,33 @@
     <h1><?= appName ?> — الوصول مقيّد</h1>
     <? if (userEmail) { ?><div class="who"><?= userEmail ?></div><? } ?>
     <p>حسابك غير مضاف إلى قائمة المصرّح لهم بالدخول إلى هذه المنصة.</p>
-    <p>يرجى التواصل مع مدير المنصة لإضافة حسابك.</p>
-    <p class="en"><?= appNameEn ?>: your account is not on the access list. Please contact the platform owner.</p>
+    <p>يمكنك طلب صلاحية الدخول، وسيصل إشعار إلى مدير المنصة لإضافة حسابك.</p>
+    <p class="en"><?= appNameEn ?>: your account is not on the access list. You can request access below.</p>
+    <button type="button" class="req-btn" id="req-btn" onclick="requestAccess()">
+      <span>اطلب صلاحية الدخول</span><span class="en">· Request access</span>
+    </button>
+    <div class="req-msg" id="req-msg" role="status" aria-live="polite"></div>
+    <script>
+      function requestAccess(){
+        var btn=document.getElementById('req-btn'), msg=document.getElementById('req-msg');
+        if(!(window.google && google.script && google.script.run)){
+          msg.textContent='افتح الصفحة من رابط المنصة.'; msg.className='req-msg req-err'; return;
+        }
+        btn.disabled=true; var orig=btn.innerHTML; btn.textContent='…جارٍ الإرسال';
+        google.script.run
+          .withSuccessHandler(function(){
+            btn.style.display='none';
+            msg.innerHTML='تم إرسال طلبك إلى مدير المنصة؛ سيتم التواصل معك عند الإضافة.<br><span class="en">Your request was sent to the platform owner.</span>';
+            msg.className='req-msg req-ok';
+          })
+          .withFailureHandler(function(err){
+            btn.disabled=false; btn.innerHTML=orig;
+            msg.textContent=(err && err.message) ? err.message : 'تعذّر إرسال الطلب، حاول مرة أخرى.';
+            msg.className='req-msg req-err';
+          })
+          .requestAccess();
+      }
+    </script>
 <? } else { ?>
     <h1><?= appName ?> — الدخول متاح لمنسوبي الجامعة فقط</h1>
     <p>يرجى تسجيل الدخول بحساب Google الجامعي المنتهي بـ <b dir="ltr">@sr.edu.sa</b> ثم إعادة فتح الرابط.</p>

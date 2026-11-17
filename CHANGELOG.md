@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.4 — 2026-11-17
+- v6.4 — Denied page: 'Request access' button emails the owner (m.elmahdy) with the signed-in user's address; 30-min de-dup
+
 ## v6.3 — 2026-11-17
 - v6.3 — Access panel reads sector 'everyone vs specific' from the live sheet, so a restricted sector (Female Section) shows its real owners and is manageable
 
