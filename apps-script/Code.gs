@@ -25,7 +25,7 @@
 /* ▼▼▼ CONFIG — change per platform ▼▼▼ */
 const APP_NAME       = 'التقرير الأسبوعي لحالة تقنية المعلومات';
 const APP_NAME_EN    = 'ICTD Weekly Status Report';
-const APP_VERSION    = '6.4';
+const APP_VERSION    = '6.5';
 const ALLOWED_DOMAIN = 'sr.edu.sa';
 const FAVICON_URL    = 'https://ictsru.github.io/ITOC/assets/itoc-logo.png';
 
@@ -633,6 +633,24 @@ function requestAccess() {
   return { ok: true };
 }
 
+/**
+ * RUN ONCE from the editor (or the sheet menu) to grant the send-mail
+ * permission that requestAccess() needs. Sending email is a new capability
+ * added in v6.4, so Google must be authorized for it once by the owner.
+ * After approving the prompt, the "Request access" button works for everyone
+ * (the web app runs as the owner).
+ */
+function authorizeMail() {
+  MailApp.sendEmail({
+    to: OWNER_EMAILS.join(','),
+    subject: 'تم تفعيل إشعارات طلب الصلاحية — ' + APP_NAME_EN,
+    body: 'تم منح صلاحية إرسال البريد بنجاح. زر «اطلب صلاحية الدخول» في صفحة الوصول يعمل الآن.\n\n' +
+          'Mail permission granted. The "Request access" button on the Denied page now works.'
+  });
+  try { SpreadsheetApp.getActive().toast('تم منح صلاحية البريد. زر طلب الصلاحية يعمل الآن.', APP_NAME_EN, 8); } catch (e) {}
+  return 'OK — mail authorized; request-access emails will now send.';
+}
+
 /* ---------------------------- Access log ---------------------------- */
 
 function logAccess_(email, result) {
@@ -710,6 +728,7 @@ function onOpen() {
     SpreadsheetApp.getUi().createMenu(APP_NAME_EN)
       .addItem('إعداد قائمة المصرّح لهم (AllowedUsers)', 'setupAccessList')
       .addItem('إعداد مصفوفة صلاحيات القطاعات (SectorOwners)', 'setupSectorOwners')
+      .addItem('منح صلاحية البريد لطلب الدخول (Request access)', 'authorizeMail')
       .addSeparator()
       .addItem('ملخص سجل الدخول (30 يومًا)', 'showLogSummary')
       .addItem('حذف سجلات الدخول القديمة', 'purgeOldLogs')

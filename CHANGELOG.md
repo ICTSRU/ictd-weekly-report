@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.5 — 2026-11-17
+- v6.5 — view-only sectors fully locked (disabled fieldset) + clear top banner; one-time authorizeMail() for the Request-access email
+
 ## v6.4 — 2026-11-17
 - v6.4 — Denied page: 'Request access' button emails the owner (m.elmahdy) with the signed-in user's address; 30-min de-dup
 
