@@ -4,7 +4,7 @@
 <meta name="version" content="<?= version ?>">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ICTD Weekly Status Report — v6.1</title>
+<title>ICTD Weekly Status Report — v6.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -585,6 +585,17 @@
   .tier-admin{background:#fdecec; color:var(--red);}
   .tier-editor{background:var(--blue-light); color:var(--blue);}
   .tier-viewer{background:#eee9f5; color:var(--muted);}
+  .tier-select{font-family:inherit; font-size:11.5px; font-weight:800; padding:5px 10px; border-radius:14px; border:1.5px solid var(--border); cursor:pointer; background:#fff; color:var(--ink); min-width:118px;}
+  .tier-select:hover{border-color:var(--purple);}
+  .tier-select:focus{outline:none; box-shadow:0 0 0 3px rgba(80,30,140,.18);}
+  .tier-select.tier-admin{background:#fdecec; color:var(--red); border-color:#f3c7c7;}
+  .tier-select.tier-editor{background:var(--blue-light); color:var(--blue); border-color:#bfe0f2;}
+  .tier-select.tier-viewer{background:#f3eefb; color:var(--muted);}
+  .tier-select:disabled{opacity:.55; cursor:default;}
+  :root[data-theme="dark"] .tier-select{background:#211a33; color:var(--ink);}
+  :root[data-theme="dark"] .tier-select.tier-admin{background:rgba(239,91,96,.16); color:var(--red); border-color:rgba(239,91,96,.3);}
+  :root[data-theme="dark"] .tier-select.tier-editor{background:var(--blue-light); color:var(--blue); border-color:rgba(56,163,221,.3);}
+  :root[data-theme="dark"] .tier-select.tier-viewer{background:#2a2140; color:var(--muted);}
   .sector-chips{display:flex; flex-wrap:wrap; gap:5px; max-width:320px;}
   .sector-chip{font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; background:var(--purple-light); color:var(--purple); cursor:pointer; border:1px solid transparent; user-select:none;}
   .sector-chip.on{background:var(--purple); color:#fff;}
@@ -767,7 +778,7 @@ function brandFallback(img){
   <div class="in">
   <div class="brand">
     <div class="brand-text">
-      <h1>ICTD Weekly Status Report <span class="version-badge">v6.1</span></h1>
+      <h1>ICTD Weekly Status Report <span class="version-badge">v6.2</span></h1>
       <p class="sub">Sulaiman Al Rajhi University — Executive Directorate of Communications &amp; Information Technology</p>
     </div>
   </div>
@@ -977,7 +988,7 @@ function brandFallback(img){
 <footer class="sru-footer sru-tech-bg-dark">
   <div class="in">
     <div class="sru-support"><b>For Support:</b> Dial <span class="star">*</span> <span class="or">or</span> Send email to: <a href="mailto:servicedesk@sr.edu.sa">servicedesk@sr.edu.sa</a></div>
-    <div class="footer-version">ICTD Weekly Status Report — Version 6.1 · Sulaiman Al Rajhi University</div>
+    <div class="footer-version">ICTD Weekly Status Report — Version 6.2 · Sulaiman Al Rajhi University</div>
     <a class="sru-itoc" href="https://ictsru.github.io/ITOC/#forms" target="_blank" rel="noopener noreferrer"
        aria-label="ITOC — IT Operations Center, Forms" title="ITOC — IT Operations Center · Forms">
       <img src="https://ictsru.github.io/brand/logos/itoc-logo.png" data-fallback="itoc" onerror="brandFallback(this)" alt="ITOC — IT Operations Center">
@@ -1657,12 +1668,16 @@ function renderAdminUsers(){
       return '<span class="sector-chip'+(on?' on':'')+'" data-email="'+escapeAttrText(u.email)+'" data-code="'+escapeAttrText(s.code)+'" role="button" tabindex="0">'+escapeHtml(s.label)+'</span>';
     }).join('');
     var activeBtn = '<button class="mini-btn '+(u.active?'on':'off')+'" data-act="active" data-email="'+escapeAttrText(u.email)+'" data-val="'+(u.active?'0':'1')+'">'+(u.active?'نشط':'موقوف')+'</button>';
-    var roleBtn = '<button class="mini-btn" data-act="role" data-email="'+escapeAttrText(u.email)+'" data-val="'+(u.role==='admin'?'user':'admin')+'">'+(u.role==='admin'?'↓ user':'↑ admin')+'</button>';
+    var tierSel = '<select class="tier-select tier-'+u.tier+'" data-email="'+escapeAttrText(u.email)+'" data-cur="'+u.tier+'" title="تغيير الدور — change role">'
+      +'<option value="admin"'+(u.tier==='admin'?' selected':'')+'>Admin · مشرف</option>'
+      +'<option value="editor"'+(u.tier==='editor'?' selected':'')+'>Editor · محرر</option>'
+      +'<option value="viewer"'+(u.tier==='viewer'?' selected':'')+'>Viewer · مطّلع</option>'
+      +'</select>';
     return '<tr>'+
       '<td><div class="u-email">'+escapeHtml(u.email)+'</div>'+(u.name?'<div class="u-name">'+escapeHtml(u.name)+'</div>':'')+'</td>'+
-      '<td>'+tierPill(u.tier)+'</td>'+
+      '<td>'+tierSel+'</td>'+
       '<td><div class="sector-chips">'+(chips||'<span class="u-name">—</span>')+'</div></td>'+
-      '<td><div class="u-actions">'+activeBtn+roleBtn+'</div></td>'+
+      '<td><div class="u-actions">'+activeBtn+'</div></td>'+
     '</tr>';
   }).join('');
   wrap.innerHTML =
@@ -1707,6 +1722,35 @@ function renderAdminUsers(){
           .catch(function(err){ busy(btn,false); toast(err && err.message ? err.message : 'فشل'); });
       }
     }
+  });
+
+  // change a person's role from the Tier dropdown
+  //   Admin  -> AllowedUsers role = admin
+  //   Editor -> role = user (keeps owned sectors; assign via chips)
+  //   Viewer -> role = user AND clear owned sectors (true read-only)
+  view.addEventListener('change', function(e){
+    var sel = e.target.closest('.tier-select');
+    if(!sel) return;
+    var em = sel.dataset.email, cur = sel.dataset.cur, next = sel.value;
+    if(next === cur) return;
+    var u = ADMIN_STATE.users.find(function(x){ return x.email === em; });
+    if(!u) { sel.value = cur; return; }
+    sel.disabled = true;
+    var role = (next === 'admin') ? 'admin' : 'user';
+    gsCall('apiAdminUpsertUser', {email:em, name:u.name, role:role, active:u.active}).then(function(){
+      if(next === 'viewer' && u.sectors && u.sectors.length){
+        return gsCall('apiAdminSetSectors', em, []);   // strip edit rights
+      }
+    }).then(function(){
+      EDITABLE_SECTORS = null;
+      loadAdminPanel(true);
+      toast(next==='admin' ? 'تم التعيين مشرفًا — now Admin'
+          : next==='viewer' ? 'تم التحويل إلى مطّلع (أُزيلت القطاعات) — now Viewer'
+          : 'تم التعيين محررًا — now Editor (assign sectors with the chips)');
+    }).catch(function(err){
+      sel.disabled = false; sel.value = cur;
+      toast(err && err.message ? err.message : 'فشل تغيير الدور — change failed');
+    });
   });
 
   // keyboard toggle for chips

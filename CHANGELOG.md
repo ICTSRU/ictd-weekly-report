@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.2 — 2026-11-17
+- v6.2 — Access panel: change a person's role directly from a Tier dropdown (Admin/Editor/Viewer); Viewer clears owned sectors
+
 ## v6.1 — 2026-11-17
 - v6.1 — add Female Section sector (dropdown + sector ownership)
 
