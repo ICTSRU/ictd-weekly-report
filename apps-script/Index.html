@@ -4,7 +4,7 @@
 <meta name="version" content="<?= version ?>">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ICTD Weekly Status Report — v6.0</title>
+<title>ICTD Weekly Status Report — v6.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
     --blue:#0a6eaa; --blue-light:#e6f3fa;
     --bg:#f5f2fa; --border:rgba(80,30,140,0.14);
     --ink:#241436; --muted:#77678d; --radius:12px; --radius-sm:8px;
-    --noc:#0d5fad; --soc:#c0272d; --dssc:#1f8a3b; --aau:#e0a010; --ops:#7a3fc0; --evt:#0a8f8f; --cit:#a0522d; --p1:#1f5f8b; --p2:#8b1f5f; --p3:#4a7c2f; --p4:#8b5f1f; --p5:#1f7a8b; --p6:#6b3fa0;
+    --noc:#0d5fad; --soc:#c0272d; --dssc:#1f8a3b; --aau:#e0a010; --ops:#7a3fc0; --evt:#0a8f8f; --cit:#a0522d; --p1:#1f5f8b; --p2:#8b1f5f; --p3:#4a7c2f; --p4:#8b5f1f; --p5:#1f7a8b; --p6:#6b3fa0; --p7:#b03a6e;
     --green:#1f8a3b; --amber:#c98a00; --red:#c0272d;
     --cover-bg:#eef0f3; --cover-bg-2:#e1e4e9; --cover-ink:#2a2d33;
     --shadow-sm:0 1px 3px rgba(58,20,100,0.07), 0 1px 2px rgba(58,20,100,0.05);
@@ -767,7 +767,7 @@ function brandFallback(img){
   <div class="in">
   <div class="brand">
     <div class="brand-text">
-      <h1>ICTD Weekly Status Report <span class="version-badge">v6.0</span></h1>
+      <h1>ICTD Weekly Status Report <span class="version-badge">v6.1</span></h1>
       <p class="sub">Sulaiman Al Rajhi University — Executive Directorate of Communications &amp; Information Technology</p>
     </div>
   </div>
@@ -805,6 +805,7 @@ function brandFallback(img){
         <option value="SOC">SOC — Security Operations Center</option>
         <option value="DSSC">DSSC — Digital Support and Service Center</option>
         <option value="AAU">AAU — Applications &amp; Automation Unit</option>
+        <option value="FemaleSection">Female Section</option>
         <option value="Events">Event Support</option>
         <option value="CoffeeIT">Coffee with IT</option>
         <option value="ITOC">ITOC — IT Operations Center</option>
@@ -976,7 +977,7 @@ function brandFallback(img){
 <footer class="sru-footer sru-tech-bg-dark">
   <div class="in">
     <div class="sru-support"><b>For Support:</b> Dial <span class="star">*</span> <span class="or">or</span> Send email to: <a href="mailto:servicedesk@sr.edu.sa">servicedesk@sr.edu.sa</a></div>
-    <div class="footer-version">ICTD Weekly Status Report — Version 6.0 · Sulaiman Al Rajhi University</div>
+    <div class="footer-version">ICTD Weekly Status Report — Version 6.1 · Sulaiman Al Rajhi University</div>
     <a class="sru-itoc" href="https://ictsru.github.io/ITOC/#forms" target="_blank" rel="noopener noreferrer"
        aria-label="ITOC — IT Operations Center, Forms" title="ITOC — IT Operations Center · Forms">
       <img src="https://ictsru.github.io/brand/logos/itoc-logo.png" data-fallback="itoc" onerror="brandFallback(this)" alt="ITOC — IT Operations Center">
@@ -994,6 +995,7 @@ const SECTORS = [
   {code:'SOC', label:'SOC', name:'SOC — Security Operations Center', color:'var(--soc)', icon:'shield'},
   {code:'DSSC', label:'DSSC', name:'DSSC — Digital Support and Service Center', color:'var(--dssc)', icon:'headset'},
   {code:'AAU', label:'AAU', name:'AAU — Applications & Automation Unit', color:'var(--aau)', icon:'boxes'},
+  {code:'FemaleSection', label:'Female Section', name:'Female Section', color:'var(--p7)', icon:'users'},
   {code:'Events', label:'Event Support', name:'Event Support', color:'var(--evt)', icon:'calendar-check'},
   {code:'CoffeeIT', label:'Coffee with IT', name:'Coffee with IT', color:'var(--cit)', icon:'coffee'},
   {code:'ITOC', label:'ITOC', name:'ITOC — IT Operations Center', color:'var(--p1)', icon:'settings'},

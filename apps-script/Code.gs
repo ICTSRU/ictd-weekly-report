@@ -25,7 +25,7 @@
 /* ▼▼▼ CONFIG — change per platform ▼▼▼ */
 const APP_NAME       = 'التقرير الأسبوعي لحالة تقنية المعلومات';
 const APP_NAME_EN    = 'ICTD Weekly Status Report';
-const APP_VERSION    = '6.0';
+const APP_VERSION    = '6.1';
 const ALLOWED_DOMAIN = 'sr.edu.sa';
 const FAVICON_URL    = 'https://ictsru.github.io/ITOC/assets/itoc-logo.png';
 
@@ -94,6 +94,7 @@ const DEFAULT_SECTOR_OWNERS = [
   ['SOC',       'SOC',             'n.nawaz@sr.edu.sa, a.elnadi@sr.edu.sa', 'matrix: n.nawaz + Atef Elnadi'],
   ['DSSC',      'DSSC',            'm.omar@sr.edu.sa',      'matrix: m.omar'],
   ['AAU',       'AAU',             'm.saleh@sr.edu.sa',     'matrix: m.saleh'],
+  ['FemaleSection', 'Female Section', 'ALL',                'Female Section — restrict owners via the Access panel'],
   ['Events',    'Event Support',   'ALL',                   'matrix: All'],
   ['CoffeeIT',  'Coffee with IT',  'ALL',                   'matrix: All'],
   ['ITOC',      'ITOC',            'm.elmahdy@sr.edu.sa',   'matrix: mahdy (was M. ElMahdy)'],

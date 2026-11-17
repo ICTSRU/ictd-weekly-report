@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.1 — 2026-11-17
+- v6.1 — add Female Section sector (dropdown + sector ownership)
+
 ## v6.0 — 2026-11-15
 - v6.0 — Access & Permissions panel (admins only): manage AllowedUsers roles/active and SectorOwners assignments from inside the app
 
